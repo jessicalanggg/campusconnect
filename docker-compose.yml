@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: campus
+      POSTGRES_PASSWORD: campus_local_only
+      POSTGRES_DB: campusconnect
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus -d campusconnect"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://campus:campus_local_only@db:5432/campusconnect
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      CORS_ORIGINS: http://localhost:5173
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  matcher:
+    # Exam-aware background matching: runs every MATCH_INTERVAL_MINUTES after the backend has migrated the DB.
+    build: ./backend
+    restart: unless-stopped
+    command: ["python", "-m", "app.matching.scheduler"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://campus:campus_local_only@db:5432/campusconnect
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      MATCH_INTERVAL_MINUTES: ${MATCH_INTERVAL_MINUTES:-60}
+    depends_on:
+      backend:
+        condition: service_started
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+volumes:
+  pgdata:
