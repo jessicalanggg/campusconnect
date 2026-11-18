@@ -15,11 +15,16 @@ React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitH
 
 Every matching round runs three algorithms on the same students and logs all three. On synthetic populations ([full benchmark](docs/benchmark.md), 5 random populations per size):
 
-| 250 students | Students placed | Avg match quality | Shared free hours / week |
-|---|---:|---:|---:|
-| Greedy baseline | 97.9% | 0.561 | 2.05 |
-| Local search | 98.5% | 0.623 | 2.24 |
-| **ILP (OR-Tools CP-SAT)** | **99.1%** | **0.673** (+20%) | **2.52** (+23%) |
+| Students | Algorithm | Placed | Avg match quality | Shared free hours / week |
+|---:|---|---:|---:|---:|
+| 250 | Greedy baseline | 97.9% | 0.561 | 2.05 |
+| 250 | Local search | 98.5% | 0.623 | 2.24 |
+| 250 | **ILP (OR-Tools CP-SAT)** | **99.2%** | **0.674** (+20%) | **2.53** (+23%) |
+| 500 | Greedy baseline | 98.8% | 0.563 | 2.06 |
+| 500 | Local search | 99.0% | 0.653 | 2.36 |
+| 500 | **ILP (OR-Tools CP-SAT)** | **99.0%** | **0.665** (+18%) | **2.43** (+18%) |
+
+At 500 students, CP-SAT reaches its 5-second limit before it finishes improving, so local search closes much of the gap. A longer limit (`ILP_TIME_LIMIT_SECONDS`) helps very large courses.
 
 In small classes the main win is placement: with 30 students the ILP places **75%** of them versus **45%** for greedy, because it can choose whole groups that greedy's one-at-a-time choices rule out.
 

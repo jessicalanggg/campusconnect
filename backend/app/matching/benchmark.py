@@ -12,7 +12,7 @@ import statistics
 from app.matching.engine import MatchConfig, solve_all
 from app.matching.synthetic import generate
 
-SIZES = (30, 60, 120, 250)
+SIZES = (30, 60, 120, 250, 500)
 SEEDS = (1, 2, 3, 4, 5)
 
 
