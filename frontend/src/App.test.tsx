@@ -61,17 +61,16 @@ describe('Penn email verification (when enabled)', () => {
   beforeEach(() => { overrides['/config'] = PENN_STRICT })
 
   it('asks new students to check their Penn inbox instead of signing them in', async () => {
-    overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'ben@seas.upenn.edu', name: 'Ben' } }
-    overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'ben@seas.upenn.edu', name: 'Ben', verification_required: true } }
+    overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'ben@engineering.upenn.edu', name: 'Ben', verification_required: true } }
     render(<App />)
     await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith('/api/config'))).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: /Get started/ }))
     fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Ben' } })
     await waitFor(() => expect(screen.getByPlaceholderText('you@upenn.edu')).toBeInTheDocument())
-    fireEvent.change(screen.getByPlaceholderText('you@upenn.edu'), { target: { value: 'ben@seas.upenn.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('you@upenn.edu'), { target: { value: 'ben@engineering.upenn.edu' } })
     fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'long-password-1' } })
     fireEvent.click(screen.getByRole('button', { name: /Create account/ }))
-    await waitFor(() => expect(screen.getByText(/We sent a verification link to ben@seas.upenn.edu/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/We sent a verification link to ben@engineering.upenn.edu/)).toBeInTheDocument())
     expect(fetchMock.mock.calls.some(([u]) => String(u).includes('/auth/login'))).toBe(false)
   })
 

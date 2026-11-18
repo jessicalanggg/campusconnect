@@ -7,7 +7,7 @@ def test_only_penn_addresses_can_register(client):
     assert bad.status_code == 422 and "Penn email" in bad.json()["detail"]
     lookalike = client.post("/api/auth/register", json={"email": "x@notupenn.edu", "name": "X", "password": PASSWORD})
     assert lookalike.status_code == 422
-    assert register(client, "student@seas.upenn.edu").json()["email"] == "student@seas.upenn.edu"
+    assert register(client, "student@engineering.upenn.edu").json()["email"] == "student@engineering.upenn.edu"
     assert register(client, "student@upenn.edu").status_code == 201
 
 

@@ -66,7 +66,7 @@ def get_group_or_404(db: Session, group_id: int) -> StudyGroup:
 def domain_message() -> str:
     domains = settings.allowed_domains()
     if domains == ["upenn.edu"]:
-        return "Use your Penn email address (@upenn.edu, including school addresses like @seas.upenn.edu)"
+        return "Use your Penn email address (@upenn.edu, including school addresses like @engineering.upenn.edu)"
     return "Sign up with an email address from: " + ", ".join("@" + d for d in domains)
 
 

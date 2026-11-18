@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     admin_emails: str = ""
 
     # --- Accounts
-    # Comma-separated domains allowed to sign up; subdomains count (seas.upenn.edu for upenn.edu).
+    # Comma-separated domains allowed to sign up; subdomains count (engineering.upenn.edu for upenn.edu).
     # Empty or "*" allows any email address.
     allowed_email_domains: str = "*"
     # When true, new accounts must click an emailed link before signing in (needs working email delivery).

@@ -42,7 +42,7 @@ Set `EMAIL_FROM` to the sending address, e.g. `CampusConnect <you@gmail.com>`.
 |---|---|---|
 | `DATABASE_URL` | SQLite file | Postgres URL (`postgres://` URLs are accepted) |
 | `SECRET_KEY` | dev value | Signs sessions and verification links; long and random in production |
-| `ALLOWED_EMAIL_DOMAINS` | `*` (any) | Accepted email domains, comma-separated; subdomains such as `seas.upenn.edu` count |
+| `ALLOWED_EMAIL_DOMAINS` | `*` (any) | Accepted email domains, comma-separated; subdomains such as `engineering.upenn.edu` count |
 | `REQUIRE_EMAIL_VERIFICATION` | `false` | Require an emailed confirmation link before first sign-in (needs `SMTP_*`) |
 | `APP_BASE_URL` | `http://localhost:5173` | Public URL used in confirmation emails |
 | `SMTP_*`, `EMAIL_FROM` | unset | Email delivery; when `SMTP_HOST` is empty, emails are written to the log instead |
