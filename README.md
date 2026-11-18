@@ -13,7 +13,7 @@ React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitH
   <img src="docs/images/demo.gif" alt="Demo: a student picks CIS 1210, paints Tuesday and Thursday evenings on the availability grid and joins the pool; an admin runs a matching round that compares greedy, local search and the ILP; the student opens their matched group showing the hours everyone is free" width="100%">
 </p>
 
-<sub>Demo with simulated classmates on a local copy of the app (21 seconds).</sub>
+<sub>Demo with simulated classmates on a local copy of the app (30 seconds).</sub>
 
 ## Results
 
