@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { BookOpen, Users, Search, Plus, LogOut, ArrowRight, GraduationCap, X, Trash2, Pencil, UserRound, ChevronLeft, ChevronRight, Sparkles, CalendarCheck, Clock, RefreshCw } from 'lucide-react'
-import { api, ApiError, describeSlots, type User, type Course, type Group, type GroupInput, type GroupPage } from './lib/api'
+import { api, ApiError, describeSlots, type SignupConfig, type User, type Course, type Group, type GroupInput, type GroupPage } from './lib/api'
 import MatchPanel from './components/MatchPanel'
 import MetricsPanel from './components/MetricsPanel'
 import AdminPanel from './components/AdminPanel'
@@ -38,6 +38,10 @@ export default function App() {
   // Account flow messages shown inside the sign-in dialog
   const [pendingEmail, setPendingEmail] = useState('')  // registered or unverified address awaiting verification
   const [authInfo, setAuthInfo] = useState('')
+  const [signup, setSignup] = useState<SignupConfig>({ allowed_email_domains: [], require_email_verification: false })
+  const pennOnly = signup.allowed_email_domains.length === 1 && signup.allowed_email_domains[0] === 'upenn.edu'
+  const emailLabel = pennOnly ? 'Penn email' : signup.allowed_email_domains.length ? 'School email' : 'Email'
+  const emailPlaceholder = pennOnly ? 'you@upenn.edu' : signup.allowed_email_domains.length ? `you@${signup.allowed_email_domains[0]}` : 'you@email.com'
 
   const notify = useCallback((msg: string) => { setNotice(msg); setError('') }, [])
   const fail = useCallback((msg: string) => setError(msg), [])
@@ -57,6 +61,7 @@ export default function App() {
   }, [page, query, courseId, user])
 
   useEffect(() => { api<Course[]>('/courses').then(setCourses).catch(e => setError(e.message)) }, [])
+  useEffect(() => { api<SignupConfig>('/config').then(c => { if (c && Array.isArray(c.allowed_email_domains)) setSignup(c) }).catch(() => undefined) }, [])
   useEffect(() => { refresh() }, [refresh, version])
   // The session is an HttpOnly cookie, so ask the server who we are.
   useEffect(() => { api<User>('/auth/me').then(setUser).catch(() => setUser(null)) }, [])
@@ -66,7 +71,7 @@ export default function App() {
     if (!token) return
     window.history.replaceState(null, '', window.location.pathname)
     api<User>('/auth/verify', { method: 'POST', body: JSON.stringify({ token }) })
-      .then(u => { setAuth(a => ({ ...a, email: u.email })); setAuthMode('login'); setAuthInfo('Your Penn email is verified. Sign in to get matched.'); setAuthOpen(true) })
+      .then(u => { setAuth(a => ({ ...a, email: u.email })); setAuthMode('login'); setAuthInfo('Your email is verified. Sign in to get matched.'); setAuthOpen(true) })
       .catch(e => setError((e as Error).message))
   }, [])
 
@@ -74,10 +79,13 @@ export default function App() {
     e.preventDefault(); setError(''); setAuthInfo(''); setBusy(true)
     try {
       if (authMode === 'register') {
-        await api('/auth/register', { method: 'POST', body: JSON.stringify(auth) })
-        setPendingEmail(auth.email); setAuthMode('login'); setAuth(a => ({ ...a, password: '' }))
-        setAuthInfo(`We sent a verification link to ${auth.email}. Click it, then sign in here.`)
-        return
+        const created = await api<{ verification_required: boolean }>('/auth/register', { method: 'POST', body: JSON.stringify(auth) })
+        if (created.verification_required) {
+          setPendingEmail(auth.email); setAuthMode('login'); setAuth(a => ({ ...a, password: '' }))
+          setAuthInfo(`We sent a verification link to ${auth.email}. Click it, then sign in here.`)
+          return
+        }
+        // No verification step: sign the new student straight in.
       }
       await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: auth.email, password: auth.password }) })
       setUser(await api<User>('/auth/me')); setAuthOpen(false); setPendingEmail(''); setAuth({ name: '', email: '', password: '' }); setNotice('Welcome to CampusConnect!')
@@ -161,7 +169,7 @@ export default function App() {
     {tab === 'discover' && total > 9 && <div className="pagination"><button disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeft size={18}/> Previous</button><span>Page {page} of {Math.ceil(total / 9)}</span><button disabled={page * 9 >= total} onClick={() => setPage(p => p + 1)}>Next <ChevronRight size={18}/></button></div>}</section>}
     </div></main>
     <footer><div className="container footer-inner"><span className="brand"><span className="brand-icon"><GraduationCap size={18}/></span> Campus<span>Connect</span></span><span>Study groups that actually meet.</span><span>© {new Date().getFullYear()} CampusConnect</span></div></footer>
-    {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAuthOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Account"><button className="close" aria-label="Close" onClick={() => setAuthOpen(false)}><X/></button><div className="modal-mark"><GraduationCap/></div><h2>{authMode === 'login' ? 'Welcome back' : 'Join CampusConnect'}</h2><p>{authMode === 'login' ? 'Sign in to connect with your classmates.' : 'Sign up with your Penn email to get matched with classmates.'}</p>{authInfo && <div className="alert info" role="status">{authInfo}{pendingEmail && authInfo.includes('Verify') && <button type="button" className="link-btn" disabled={busy} onClick={resendVerification}>Resend link</button>}</div>}{error && <div className="alert danger" role="alert">{error}</div>}<form onSubmit={submitAuth}>{authMode === 'register' && <label>Full name<input required minLength={1} maxLength={120} value={auth.name} onChange={e => setAuth({ ...auth, name: e.target.value })} placeholder="Your name"/></label>}<label>Penn email<input required type="email" value={auth.email} onChange={e => setAuth({ ...auth, email: e.target.value })} placeholder="you@upenn.edu" autoComplete="email"/>{authMode === 'register' && <small className="field-hint">@upenn.edu or a school address like @seas.upenn.edu. We’ll email you a link to confirm it.</small>}</label><label>Password<input required type="password" minLength={8} value={auth.password} onChange={e => setAuth({ ...auth, password: e.target.value })} placeholder="At least 8 characters"/></label><button className="btn primary full" disabled={busy}>{busy ? 'Please wait...' : authMode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={16}/></button></form><div className="switch">{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button onClick={() => openAuth(authMode === 'login' ? 'register' : 'login')}>{authMode === 'login' ? 'Sign up' : 'Sign in'}</button></div></div></div>}
+    {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAuthOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Account"><button className="close" aria-label="Close" onClick={() => setAuthOpen(false)}><X/></button><div className="modal-mark"><GraduationCap/></div><h2>{authMode === 'login' ? 'Welcome back' : 'Join CampusConnect'}</h2><p>{authMode === 'login' ? 'Sign in to connect with your classmates.' : pennOnly ? 'Sign up with your Penn email to get matched with classmates.' : 'Create an account to get matched with classmates.'}</p>{authInfo && <div className="alert info" role="status">{authInfo}{pendingEmail && authInfo.includes('Verify') && <button type="button" className="link-btn" disabled={busy} onClick={resendVerification}>Resend link</button>}</div>}{error && <div className="alert danger" role="alert">{error}</div>}<form onSubmit={submitAuth}>{authMode === 'register' && <label>Full name<input required minLength={1} maxLength={120} value={auth.name} onChange={e => setAuth({ ...auth, name: e.target.value })} placeholder="Your name"/></label>}<label>{emailLabel}<input required type="email" value={auth.email} onChange={e => setAuth({ ...auth, email: e.target.value })} placeholder={emailPlaceholder} autoComplete="email"/>{authMode === 'register' && (signup.allowed_email_domains.length > 0 || signup.require_email_verification) && <small className="field-hint">{pennOnly ? '@upenn.edu or a school address like @seas.upenn.edu.' : signup.allowed_email_domains.length ? `Use an address ending in ${signup.allowed_email_domains.map(d => '@' + d).join(' or ')}.` : ''}{signup.require_email_verification ? ' We’ll email you a link to confirm it.' : ''}</small>}</label><label>Password<input required type="password" minLength={8} value={auth.password} onChange={e => setAuth({ ...auth, password: e.target.value })} placeholder="At least 8 characters"/></label><button className="btn primary full" disabled={busy}>{busy ? 'Please wait...' : authMode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={16}/></button></form><div className="switch">{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button onClick={() => openAuth(authMode === 'login' ? 'register' : 'login')}>{authMode === 'login' ? 'Sign up' : 'Sign in'}</button></div></div></div>}
     {editorOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setEditorOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Study group editor"><button className="close" aria-label="Close" onClick={() => setEditorOpen(false)}><X/></button><div className="modal-mark"><Plus/></div><h2>{editing ? 'Edit study group' : 'Create a study group'}</h2><p>Bring your classmates together to learn and grow.</p><form onSubmit={saveGroup}><label>Course<select required disabled={!!editing} value={draft.course_id || ''} onChange={e => setDraft({ ...draft, course_id: Number(e.target.value) })}><option value="" disabled>Select a course</option>{courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}</select></label><label>Group name<input required minLength={3} maxLength={120} value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Algorithms midterm prep"/></label><label>Description<textarea maxLength={3000} rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} placeholder="What will your group focus on?"/></label><label>Maximum members<input type="number" required min={2} max={100} value={draft.max_members} onChange={e => setDraft({ ...draft, max_members: Number(e.target.value) })}/></label><button disabled={busy} className="btn primary full">{busy ? 'Saving...' : editing ? 'Save changes' : 'Create group'} <ArrowRight size={16}/></button></form></div></div>}
     {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Group details"><button className="close" aria-label="Close" onClick={() => setSelected(null)}><X/></button>
       <span className="course-pill color-0">{selected.course_code}</span>{selected.kind === 'matched' && <span className="match-tag inline"><Sparkles size={12}/> Matched group</span>}

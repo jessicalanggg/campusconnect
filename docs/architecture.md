@@ -18,7 +18,7 @@ The frontend is a Vite SPA; in Docker development, Vite proxies `/api` to the ba
 - REST vs GraphQL: simpler API contracts and debugging for MVP.
 - PostgreSQL vs document DB: referential integrity for membership relationships.
 - Sessions: signed tokens in HttpOnly, Secure, SameSite=Lax cookies, so page scripts can't read them. Cookie-authenticated writes need a double-submit CSRF token. Bearer tokens remain available for API clients. There's no server-side revocation yet: tokens expire after 7 days.
-- Penn-only accounts: `@upenn.edu` (and subdomains), verified by an emailed, purpose-scoped token before first sign-in, so usage numbers count real Penn students.
+- Sign-up rules are configuration: open to anyone by default, or restricted to school domains (`upenn.edu` and its subdomains) with an emailed, purpose-scoped confirmation token before first sign-in. With verification on, usage numbers only count confirmed accounts.
 - Rate limiting: in-memory sliding windows, per account for sign-in and resend and generous per IP, because campus NAT puts many students behind one address. Per instance only.
 - Deployment: one image serves the built React app from FastAPI, so the API and UI share an origin. The matcher can run in-process for hosts without background workers.
 - Courses are seed-managed rather than user-created, keeping scope manageable.

@@ -14,7 +14,7 @@ from app.core.security import (admin_user, clear_session_cookies, current_user, 
 from app.matching import service
 from app.models.entities import (User, Course, Exam, MatchRequest, MatchRun, MeetingCheckin, StudyGroup, Membership,
                                  WaitlistEntry, utcnow)
-from app.schemas.api import (CheckinCreate, EmailIn, VerifyIn, ExamCreate, ExamOut, MatchRequestCreate, MatchRequestOut,
+from app.schemas.api import (CheckinCreate, EmailIn, PublicConfig, RegisterOut, VerifyIn, ExamCreate, ExamOut, MatchRequestCreate, MatchRequestOut,
                              MatchRequestUpdate, MatchRunOut, MeOut, UserCreate, Login, UserOut, Token, CourseOut,
                              GroupCreate, GroupUpdate, GroupOut, Page)
 
@@ -63,16 +63,27 @@ def get_group_or_404(db: Session, group_id: int) -> StudyGroup:
 
 # ---------------------------------------------------------------------------------------------------- auth
 
-PENN_EMAIL_MESSAGE = "Use your Penn email address (@upenn.edu, including school addresses like @seas.upenn.edu)"
+def domain_message() -> str:
+    domains = settings.allowed_domains()
+    if domains == ["upenn.edu"]:
+        return "Use your Penn email address (@upenn.edu, including school addresses like @seas.upenn.edu)"
+    return "Sign up with an email address from: " + ", ".join("@" + d for d in domains)
 
 
-@router.post("/auth/register", response_model=UserOut, status_code=201,
+@router.get("/config", response_model=PublicConfig)
+def public_config():
+    """Sign-up rules, so the frontend can label the form and skip the 'check your email' step when it's off."""
+    return PublicConfig(allowed_email_domains=settings.allowed_domains(),
+                        require_email_verification=settings.require_email_verification)
+
+
+@router.post("/auth/register", response_model=RegisterOut, status_code=201,
              dependencies=[Depends(by_ip("register", 30, 600))])
 def register(data: UserCreate, tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Create an unverified account and email a verification link to the Penn address."""
+    """Create an account; when verification is required, email a verification link."""
     address = str(data.email).lower()
     if not settings.email_allowed(address):
-        raise HTTPException(422, PENN_EMAIL_MESSAGE)
+        raise HTTPException(422, domain_message())
     user = User(email=address, name=data.name.strip(), password_hash=hash_password(data.password))
     db.add(user)
     try:
@@ -81,8 +92,10 @@ def register(data: UserCreate, tasks: BackgroundTasks, db: Session = Depends(get
         db.rollback()
         raise HTTPException(409, "Email already registered") from None
     db.refresh(user)
-    tasks.add_task(email.send_verification, user.email, user.name, make_verify_token(user))
-    return user
+    if settings.require_email_verification:
+        tasks.add_task(email.send_verification, user.email, user.name, make_verify_token(user))
+    return RegisterOut(id=user.id, email=user.email, name=user.name,
+                       verification_required=settings.require_email_verification)
 
 
 @router.post("/auth/verify", response_model=UserOut, dependencies=[Depends(by_ip("verify", 30, 600))])
@@ -103,7 +116,7 @@ def resend_verification(data: EmailIn, tasks: BackgroundTasks, db: Session = Dep
     address = str(data.email).lower()
     ratelimit.check(f"resend:email:{address}", 3, 900)
     user = db.scalar(select(User).where(User.email == address))
-    if user and user.email_verified_at is None:
+    if settings.require_email_verification and user and user.email_verified_at is None:
         tasks.add_task(email.send_verification, user.email, user.name, make_verify_token(user))
     return {"detail": "If that account exists and isn't verified yet, a new link is on its way."}
 
@@ -116,8 +129,8 @@ def login(data: Login, response: Response, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == address))
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(401, "Invalid email or password")
-    if user.email_verified_at is None:
-        raise HTTPException(403, "Verify your Penn email first. Check your inbox for the link.")
+    if settings.require_email_verification and user.email_verified_at is None:
+        raise HTTPException(403, "Verify your email first. Check your inbox for the link.")
     token = make_token(user.id)
     set_session_cookies(response, token)
     return Token(access_token=token)

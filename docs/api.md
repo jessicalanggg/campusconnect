@@ -6,7 +6,7 @@ Open interactive API docs at http://localhost:8000/docs.
 curl http://localhost:8000/health
 curl 'http://localhost:8000/api/courses?q=CIS'
 curl -X POST http://localhost:8000/api/auth/register -H 'Content-Type: application/json' -d '{"email":"student@upenn.edu","name":"Student","password":"password12345"}'
-# Without SMTP configured, the verification link is printed in the backend log. Confirm it with the token from the link:
+# Only when REQUIRE_EMAIL_VERIFICATION=true: confirm with the token from the emailed (or logged) link
 curl -X POST http://localhost:8000/api/auth/verify -H 'Content-Type: application/json' -d '{"token":"TOKEN_FROM_LINK"}'
 curl -X POST http://localhost:8000/api/auth/login -H 'Content-Type: application/json' -d '{"email":"student@upenn.edu","password":"password12345"}'
 # Browsers use the HttpOnly session cookie set by login. API clients can send the returned token instead:
@@ -22,10 +22,11 @@ Admins are the accounts listed in `ADMIN_EMAILS`.
 
 | Route | Authentication | Notes |
 | --- | --- | --- |
-| POST /api/auth/register | Public | Penn emails only (422 otherwise); emails a verification link; 409 duplicate |
+| GET /api/config | Public | Sign-up rules: `allowed_email_domains` (empty = any) and `require_email_verification` |
+| POST /api/auth/register | Public | 422 if the domain isn't allowed; emails a confirmation link when verification is on; 409 duplicate |
 | POST /api/auth/verify | Public | `{"token": ...}` from the emailed link; marks the email verified |
 | POST /api/auth/resend-verification | Public | Always 202 (doesn't reveal whether an account exists); 3 per 15 min per email |
-| POST /api/auth/login | Public | Sets HttpOnly `cc_session` and readable `cc_csrf` cookies, and returns the token; 403 until verified; 10 attempts per 5 min per email |
+| POST /api/auth/login | Public | Sets HttpOnly `cc_session` and readable `cc_csrf` cookies, and returns the token; 403 until verified (when verification is on); 10 attempts per 5 min per email |
 | POST /api/auth/logout | Public | Clears the session cookies |
 | GET /api/auth/me | Required | Current account |
 | GET /api/courses?q= | Public | Case-insensitive course search |

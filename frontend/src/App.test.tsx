@@ -55,12 +55,19 @@ describe('CampusConnect', () => {
   })
 })
 
-describe('Penn email verification', () => {
+const PENN_STRICT = { body: { allowed_email_domains: ['upenn.edu'], require_email_verification: true } }
+
+describe('Penn email verification (when enabled)', () => {
+  beforeEach(() => { overrides['/config'] = PENN_STRICT })
+
   it('asks new students to check their Penn inbox instead of signing them in', async () => {
     overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'ben@seas.upenn.edu', name: 'Ben' } }
+    overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'ben@seas.upenn.edu', name: 'Ben', verification_required: true } }
     render(<App />)
+    await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith('/api/config'))).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: /Get started/ }))
     fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Ben' } })
+    await waitFor(() => expect(screen.getByPlaceholderText('you@upenn.edu')).toBeInTheDocument())
     fireEvent.change(screen.getByPlaceholderText('you@upenn.edu'), { target: { value: 'ben@seas.upenn.edu' } })
     fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'long-password-1' } })
     fireEvent.click(screen.getByRole('button', { name: /Create account/ }))
@@ -73,6 +80,7 @@ describe('Penn email verification', () => {
     overrides['/auth/resend-verification'] = { status: 202, body: { detail: 'ok' } }
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
+    await waitFor(() => expect(screen.getByPlaceholderText('you@upenn.edu')).toBeInTheDocument())
     fireEvent.change(screen.getByPlaceholderText('you@upenn.edu'), { target: { value: 'ben@upenn.edu' } })
     fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'long-password-1' } })
     fireEvent.click(screen.getByRole('button', { name: /^Sign in/ }))
@@ -85,10 +93,29 @@ describe('Penn email verification', () => {
     overrides['/auth/verify'] = { status: 200, body: { id: 1, email: 'ben@upenn.edu', name: 'Ben' } }
     window.history.replaceState(null, '', '/?verify=abc.def.ghi')
     render(<App />)
-    await waitFor(() => expect(screen.getByText('Your Penn email is verified. Sign in to get matched.')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Your email is verified. Sign in to get matched.')).toBeInTheDocument())
     expect(window.location.search).toBe('')  // token removed from the address bar
     const verifyCall = fetchMock.mock.calls.find(([u]) => String(u).includes('/auth/verify'))!
     expect(JSON.parse((verifyCall[1] as RequestInit).body as string)).toEqual({ token: 'abc.def.ghi' })
+  })
+})
+
+describe('open sign-up (default)', () => {
+  it('accepts any email and signs the new student straight in', async () => {
+    overrides['/config'] = { body: { allowed_email_domains: [], require_email_verification: false } }
+    overrides['/auth/register'] = { status: 201, body: { id: 1, email: 'sam@gmail.com', name: 'Sam', verification_required: false } }
+    overrides['/auth/login'] = { body: { access_token: 'x', token_type: 'bearer' } }
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /Get started/ }))
+    expect(screen.getByText('Email')).toBeInTheDocument()
+    expect(screen.queryByText(/Penn/)).not.toBeInTheDocument()
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Sam' } })
+    fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'sam@gmail.com' } })
+    fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'long-password-1' } })
+    overrides['/auth/me'] = { body: { id: 1, email: 'sam@gmail.com', name: 'Sam' } }
+    fireEvent.click(screen.getByRole('button', { name: /Create account/ }))
+    await waitFor(() => expect(screen.getByText('Welcome to CampusConnect!')).toBeInTheDocument())
+    expect(fetchMock.mock.calls.some(([u]) => String(u).includes('/auth/login'))).toBe(true)
   })
 })
 

@@ -10,9 +10,12 @@ class Settings(BaseSettings):
     # Comma-separated emails allowed to manage exams and trigger matching runs.
     admin_emails: str = ""
 
-    # --- Accounts: Penn-only signup with email verification
-    # Comma-separated domains; subdomains are accepted too (e.g. seas.upenn.edu for upenn.edu).
-    allowed_email_domains: str = "upenn.edu"
+    # --- Accounts
+    # Comma-separated domains allowed to sign up; subdomains count (seas.upenn.edu for upenn.edu).
+    # Empty or "*" allows any email address.
+    allowed_email_domains: str = "*"
+    # When true, new accounts must click an emailed link before signing in (needs working email delivery).
+    require_email_verification: bool = False
     verify_token_hours: int = 48
     # Where verification links point (the frontend's public URL).
     app_base_url: str = "http://localhost:5173"
@@ -55,10 +58,15 @@ class Settings(BaseSettings):
     def is_admin(self, email: str) -> bool:
         return email.lower() in {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
+    def allowed_domains(self) -> list[str]:
+        """Allowed sign-up domains; an empty list means any address is accepted."""
+        domains = [d.strip().lower().lstrip("@") for d in self.allowed_email_domains.split(",") if d.strip()]
+        return [] if "*" in domains else domains
+
     def email_allowed(self, email: str) -> bool:
+        allowed = self.allowed_domains()
         domain = email.rsplit("@", 1)[-1].lower()
-        allowed = [d.strip().lower().lstrip("@") for d in self.allowed_email_domains.split(",") if d.strip()]
-        return any(domain == d or domain.endswith("." + d) for d in allowed)
+        return not allowed or any(domain == d or domain.endswith("." + d) for d in allowed)
 
 
 settings = Settings()

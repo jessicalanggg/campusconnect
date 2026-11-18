@@ -1,4 +1,5 @@
 export type User = { id: number; name: string; email: string; is_admin?: boolean }
+export type SignupConfig = { allowed_email_domains: string[]; require_email_verification: boolean }
 export type Course = { id: number; code: string; title: string; department: string }
 export type Group = {
   id: number; course_id: number; course_code: string; owner_id: number | null; title: string; description: string

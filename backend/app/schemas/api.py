@@ -23,6 +23,15 @@ class UserOut(BaseModel):
     name: str
 
 
+class RegisterOut(UserOut):
+    verification_required: bool
+
+
+class PublicConfig(BaseModel):
+    allowed_email_domains: list[str]
+    require_email_verification: bool
+
+
 class MeOut(UserOut):
     is_admin: bool = False
 

@@ -21,12 +21,16 @@ services:
         generateValue: true
       - key: RUN_MATCHER_IN_PROCESS
         value: "true"
+      # Sign-up rules: "*" = any email. For a school-only launch use e.g. "upenn.edu" and set
+      # REQUIRE_EMAIL_VERIFICATION to "true" (needs working email; see docs/deploy.md).
       - key: ALLOWED_EMAIL_DOMAINS
-        value: upenn.edu
+        value: "*"
+      - key: REQUIRE_EMAIL_VERIFICATION
+        value: "false"
       # Set these in the dashboard when prompted:
       - key: APP_BASE_URL # e.g. https://campusconnect.onrender.com (used in verification links)
         sync: false
-      - key: ADMIN_EMAILS # your Penn email
+      - key: ADMIN_EMAILS # the email you sign up with
         sync: false
       - key: SMTP_HOST
         sync: false

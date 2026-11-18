@@ -16,8 +16,9 @@ from app.matching.service import compute_metrics
 from app.models.entities import Course, MatchRequest, MatchRun, StudyGroup, utcnow
 
 METHOD = {
-    "users": "Accounts that verified a Penn (@upenn.edu) email address.",
-    "students_requested_match": "Verified students who submitted at least one match request.",
+    "users": ("Accounts on the site. When email verification is on, only accounts that confirmed their email "
+              "address; verified_users always counts confirmed accounts."),
+    "students_requested_match": "Students who submitted at least one match request.",
     "pct_groups_met_at_least_once/twice": ("Share of matched groups at least 7 days old where members reported meeting "
                                            "on at least 1 / 2 distinct dates via the in-app check-in."),
     "retention_pct": "Students who requested matching in 2+ distinct course/exam cycles, out of all requesters.",
@@ -52,7 +53,7 @@ def main():
     data = snapshot()
     m = data["metrics"]
     print(f"Period: {data['period']['first_request']} → {data['period']['last_request']}")
-    print(f"Verified students: {m['users']} · requested matching: {m['students_requested_match']} "
+    print(f"Students: {m['users']} (verified email: {m['verified_users']}) · requested matching: {m['students_requested_match']} "
           f"· courses: {m['courses_with_requests']} · matched groups: {m['matched_groups']}")
     print(f"Met ≥1: {m['pct_groups_met_at_least_once']}% · met ≥2: {m['pct_groups_met_at_least_twice']}% "
           f"(of {m['groups_eligible_for_meeting_stats']} groups ≥7 days old)")

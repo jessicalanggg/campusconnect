@@ -101,8 +101,8 @@ def current_user(request: Request, credentials: HTTPAuthorizationCredentials | N
     user = db.get(User, uid)
     if not user:
         raise HTTPException(401, "Account no longer exists")
-    if user.email_verified_at is None:  # defence in depth; login already refuses unverified accounts
-        raise HTTPException(403, "Verify your Penn email first")
+    if settings.require_email_verification and user.email_verified_at is None:  # login also refuses these
+        raise HTTPException(403, "Verify your email first")
     return user
 
 

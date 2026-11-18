@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml/badge.svg)](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml)
 
-**Live:** [campusconnect-o57p.onrender.com](https://campusconnect-o57p.onrender.com) (sign-up requires a Penn email)
+**Live:** [campusconnect-o57p.onrender.com](https://campusconnect-o57p.onrender.com)
 
 **Study groups for students who don't know anyone in the class.** GroupMe and Discord work when you already have friends in a course. CampusConnect matches **strangers**: tell it when you're free, what you want to work on and how fast you like to go. In the two weeks before each exam it forms groups that can actually meet, then tracks whether they did.
 
@@ -34,7 +34,7 @@ In small classes the main win is placement: with 30 students the ILP places **75
 
 _The app is [live](https://campusconnect-o57p.onrender.com). Results will go here after the first exam round, with the date range and the method behind each number._
 
-Only students who **verified a Penn email address** count. The app tracks outcomes, not signups (`/api/metrics`, **Impact** tab):
+The app tracks outcomes, not signups (`/api/metrics`, **Impact** tab):
 - the share of matched groups that met at least once and at least twice, from members' check-ins
 - retention across exams and courses
 - median and p90 time to match
@@ -83,7 +83,7 @@ Design details: [docs/matching.md](docs/matching.md).
 - Admin tools: add exam dates and run a matching round on demand
 
 **Accounts and security**
-- Penn-only signup: `@upenn.edu` addresses (including school subdomains), confirmed by an emailed link before first sign-in
+- Configurable sign-up: open to any email by default, or restricted to school domains (e.g. `upenn.edu`, including subdomains) with an emailed confirmation link before first sign-in
 - Sessions in HttpOnly, SameSite cookies, with double-submit CSRF tokens on writes
 - Rate limits on sign-up, sign-in, verification emails and write endpoints. They're per account where it matters, so a whole lecture hall behind one campus IP isn't blocked.
 
@@ -104,13 +104,13 @@ Prerequisites: Docker Desktop with Compose.
 
 ```bash
 cp .env.example .env
-# Edit .env: set SECRET_KEY to a long random value and ADMIN_EMAILS to your Penn email.
+# Edit .env: set SECRET_KEY to a long random value and ADMIN_EMAILS to your email.
 docker compose up --build
 ```
 
 Open **http://localhost:5173** for the app, **http://localhost:8000/docs** for the interactive API docs, and **http://localhost:8000/health** for a health check.
-- Migrations and course seeding run automatically. A fresh install starts with courses only, so register with a Penn email to begin.
-- Without SMTP settings, verification emails aren't sent. The link is printed in the backend log instead (`docker compose logs backend`).
+- Migrations and course seeding run automatically. A fresh install starts with courses only, so register an account to begin.
+- Sign-up is open to any email by default. To limit it to a school and require email confirmation, set `ALLOWED_EMAIL_DOMAINS=upenn.edu` and `REQUIRE_EMAIL_VERIFICATION=true`. Without SMTP settings, confirmation links are printed in the backend log (`docker compose logs backend`).
 - Compose also starts a `matcher` service that runs exam-aware matching every hour.
 
 Stop with `docker compose down`. To delete local database data: `docker compose down -v` (destructive).
@@ -146,7 +146,7 @@ python -m app.matching.benchmark --out ../docs/benchmark.md   # from backend/: r
 
 ## Deploying
 
-See [docs/deploy.md](docs/deploy.md). In short: Render → New → Blueprint → this repo, then fill in your URL, admin email and SMTP settings. Before real students use it, upgrade the free database, which expires after 30 days.
+See [docs/deploy.md](docs/deploy.md). In short: Render → New → Blueprint → this repo, then fill in your URL and admin email. Before real students use it, upgrade the free database, which expires after 30 days.
 
 ## Limitations
 

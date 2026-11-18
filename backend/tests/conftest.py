@@ -2,6 +2,9 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["SECRET_KEY"] = "TEST_SECRET_NOT_FOR_PRODUCTION"
 os.environ["ADMIN_EMAILS"] = "admin@upenn.edu"
+# Most tests exercise the strict mode (Penn-only, verified); test_open_signup.py covers the open defaults.
+os.environ["ALLOWED_EMAIL_DOMAINS"] = "upenn.edu"
+os.environ["REQUIRE_EMAIL_VERIFICATION"] = "true"
 os.environ["ILP_TIME_LIMIT_SECONDS"] = "5"
 import pytest
 from sqlalchemy import create_engine
