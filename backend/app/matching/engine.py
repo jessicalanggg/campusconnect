@@ -289,8 +289,15 @@ def candidate_groups(students: list[Student], cfg: MatchConfig, seeds: list[Solu
     return {g for g in pool if score_group([by_id[i] for i in g], cfg)}
 
 
-def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None = None) -> Solution:
-    """Set-partitioning ILP: choose disjoint candidate groups maximising (coverage, then total quality)."""
+def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None = None, *,
+        use_hint: bool = True, seed_pool: bool = True) -> Solution:
+    """Set-partitioning ILP: choose disjoint candidate groups maximising (coverage, then total quality).
+
+    use_hint / seed_pool are ablation switches for the evaluation suite: turn off the warm start from the best
+    baseline solution, or leave the baseline groups out of the candidate pool (beam-search candidates only).
+    stats["quality_gap_pct"] is the solver's proven bound on how much total match quality could still be gained
+    within the candidate pool (0 = proven optimal over the pool), reported when coverage is proven optimal.
+    """
     from ortools.sat.python import cp_model
 
     t0 = time.perf_counter()
@@ -298,7 +305,7 @@ def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None 
         g = greedy(students, cfg)
         seeds = [g, local_search(students, cfg, g)]
     by_id = {s.id: s for s in students}
-    cands = sorted(candidate_groups(students, cfg, seeds))
+    cands = sorted(candidate_groups(students, cfg, seeds if seed_pool else []))
     if not cands:
         return Solution("ilp", [], sorted(by_id), int((time.perf_counter() - t0) * 1000), {"candidates": 0})
 
@@ -318,9 +325,10 @@ def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None 
     model.Maximize(sum(c * v for c, v in zip(coeffs, x)))
     best_seed = max(seeds, key=lambda s: (sum(map(len, s.groups)),
                                           sum(group_value([by_id[i] for i in g], cfg) for g in s.groups)))
-    chosen = set(best_seed.groups)
-    for k, g in enumerate(cands):
-        model.AddHint(x[k], g in chosen)
+    if use_hint:
+        chosen = set(best_seed.groups)
+        for k, g in enumerate(cands):
+            model.AddHint(x[k], g in chosen)
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = cfg.ilp_seconds
@@ -332,8 +340,12 @@ def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None 
                         {"candidates": len(cands), "status": solver.StatusName(status)})
     groups = [g for k, g in enumerate(cands) if solver.Value(x[k])]
     covered = {i for g in groups for i in g}
-    return Solution("ilp", groups, sorted(set(by_id) - covered), int((time.perf_counter() - t0) * 1000),
-                    {"candidates": len(cands), "status": solver.StatusName(status)})
+    objective, bound = solver.ObjectiveValue(), solver.BestObjectiveBound()
+    gap = bound - objective
+    quality = objective - len(covered) * big  # scaled total quality of the chosen groups
+    stats = {"candidates": len(cands), "status": solver.StatusName(status), "objective": objective, "bound": bound,
+             "coverage_proven": gap < big, "quality_gap_pct": (100 * gap / quality) if gap < big and quality > 0 else None}
+    return Solution("ilp", groups, sorted(set(by_id) - covered), int((time.perf_counter() - t0) * 1000), stats)
 
 
 def solve_all(students: list[Student], cfg: MatchConfig | None = None) -> dict[str, tuple[Solution, dict]]:
