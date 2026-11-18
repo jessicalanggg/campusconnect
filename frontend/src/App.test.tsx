@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import App from './App'
 import AvailabilityGrid from './components/AvailabilityGrid'
 import { api, describeSlots, slotOf } from './lib/api'
@@ -15,7 +15,9 @@ const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
   const hit = Object.entries(overrides).find(([k]) => u.includes(k))
   if (hit) { const { status = 200, body = {} } = hit[1]; return { ok: status < 400, status, json: async () => body } }
   if (u.includes('/auth/me')) return { ok: false, status: 401, json: async () => ({ detail: 'Authentication required' }) }
-  const body = u.includes('/courses') ? [course]
+  // List endpoints return arrays like the real API (an object here crashes components that .filter/.map them).
+  const body = u.includes('/match/requests') || u.includes('/groups/mine') || u.includes('/admin/match-runs') ? []
+    : u.includes('/courses') ? [course]
     : u.includes('/exams') ? [{ id: 1, course_id: 1, name: 'Midterm 1', exam_date: '2030-03-01' }]
     : u.includes('/metrics') ? metrics
     : { items: [], total: 0, page: 1, page_size: 9 }
@@ -35,6 +37,7 @@ describe('CampusConnect', () => {
     render(<App />)
     expect(screen.getByText('in your class?')).toBeInTheDocument()
     expect(screen.getByText('Get matched with classmates')).toBeInTheDocument()
+    expect(screen.getByText('Made for Penn students · Not affiliated with the University of Pennsylvania')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByRole('option', { name: /CIS 1200/ })).toBeInTheDocument())
     await waitFor(() => expect(screen.getByText(/Midterm 1 on/)).toBeInTheDocument())
     expect(screen.getByRole('button', { name: /Find my group/ })).toBeDisabled()
@@ -54,8 +57,8 @@ describe('CampusConnect', () => {
     render(<App />)
     await waitFor(() => expect(screen.getByRole('button', { name: 'Admin' })).toBeInTheDocument())
     fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
-    expect(screen.getByText('Matching control')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Run matching now/ })).toBeInTheDocument()
+    expect(await screen.findByText('Matching control')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Run matching now/ })).toBeInTheDocument()
     expect(screen.queryByText('Does it work?')).not.toBeInTheDocument()
   })
 
@@ -118,7 +121,7 @@ describe('open sign-up (default)', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /Get started/ }))
     expect(screen.getByText('Email')).toBeInTheDocument()
-    expect(screen.queryByText(/Penn/)).not.toBeInTheDocument()
+    expect(within(screen.getByRole('dialog', { name: 'Account' })).queryByText(/Penn/)).not.toBeInTheDocument()
     fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Sam' } })
     fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'sam@gmail.com' } })
     fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), { target: { value: 'long-password-1' } })
