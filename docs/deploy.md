@@ -28,7 +28,7 @@ Set `EMAIL_FROM` to the sending address, e.g. `CampusConnect <you@gmail.com>`.
    - `ADMIN_EMAILS`: the email you'll sign up with.
    - the SMTP settings from step 1, only if you turned verification on.
 3. Deploy. Check `https://<your-service>/health`, then sign up with your admin email.
-4. Sign in as the admin. On the **Impact** tab, add the exam dates for your launch courses. Matching then runs automatically in the 14 days before each exam.
+4. Sign in as the admin. On the **Admin** tab, add the exam dates for your launch courses. Matching then runs automatically in the 14 days before each exam.
 
 ### Before real students use it
 

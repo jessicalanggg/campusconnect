@@ -40,11 +40,23 @@ describe('CampusConnect', () => {
     expect(screen.getByRole('button', { name: /Find my group/ })).toBeDisabled()
   })
 
-  it('shows outcome metrics on the impact tab', async () => {
+  it('hides admin tools and metrics from students', async () => {
+    overrides['/auth/me'] = { body: { id: 2, email: 'sam@upenn.edu', name: 'Sam', is_admin: false } }
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Impact' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'My groups' })).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Admin' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Impact' })).not.toBeInTheDocument()
+  })
+
+  it('gives admins an Admin tab with matching controls and metrics', async () => {
+    overrides['/auth/me'] = { body: { id: 1, email: 'admin@upenn.edu', name: 'Admin', is_admin: true } }
+    overrides['/admin/match-runs'] = { body: [] }
+    render(<App />)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Admin' })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
+    expect(screen.getByText('Matching control')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Run matching now/ })).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText('72.5%')).toBeInTheDocument())
-    expect(screen.getByText('of matched groups met at least twice')).toBeInTheDocument()
     expect(screen.getByText('+20%')).toBeInTheDocument()
   })
 
