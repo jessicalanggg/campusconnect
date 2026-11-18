@@ -11,7 +11,8 @@ React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitH
 
 
 
-https://github.com/user-attachments/assets/e0bf2a06-f6f9-4fca-8de1-086a0ade8abc
+https://github.com/user-attachments/assets/17c23ace-341c-4be5-9428-87610b202de6
+
 
 
 
