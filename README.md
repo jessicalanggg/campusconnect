@@ -9,9 +9,11 @@
 
 React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitHub Actions
 
-<p align="center">
-  <img src="docs/images/demo.gif" alt="Demo: a student picks CIS 1210, paints Tuesday and Thursday evenings on the availability grid and joins the pool; an admin runs a matching round that compares greedy, local search and the ILP; the student opens their matched group showing the hours everyone is free" width="100%">
-</p>
+
+
+https://github.com/user-attachments/assets/75ae0733-9b08-4e90-a7a7-3a6c55c920cf
+
+
 
 <sub>Demo with simulated classmates on a local copy of the app (30 seconds).</sub>
 
