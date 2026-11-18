@@ -31,17 +31,18 @@ For real usage, the app tracks outcomes, not signups (`/api/metrics`, **Impact**
 ## How matching works
 
 ```mermaid
-flowchart LR
-    A["Match requests<br/>free hours, goal, pace, group size"] --> B["Candidate groups<br/>beam search over compatible partners"]
-    A --> G["Greedy baseline"]
+flowchart TD
+    A["Match requests<br/>free hours · goal · pace · group size"] --> G["Greedy baseline"]
+    A --> B["Candidate groups<br/>beam search over compatible partners"]
     G --> L["Local search"]
     G --> B
     L --> B
-    B --> I["ILP · OR-Tools CP-SAT<br/>pick the best disjoint groups<br/>5s limit, seeded with local search"]
+    L -. "seed solution" .-> I
+    B --> I["ILP · OR-Tools CP-SAT<br/>pick the best disjoint groups (5s limit)"]
     I --> M["Matched groups"]
-    M --> C["'Did your group meet?'<br/>check-ins"]
+    M --> C["'Did your group meet?' check-ins"]
     C --> R["Outcome metrics"]
-    M -. "someone leaves or their schedule changes" .-> A
+    M -. "someone leaves or<br/>their schedule changes" .-> A
 ```
 
 Group formation is a **constrained assignment problem**:
