@@ -21,12 +21,19 @@ def send(to: str, subject: str, body: str) -> None:
         OUTBOX.append(msg)
         log.warning("SMTP not configured; email to %s not sent.\nSubject: %s\n%s", to, subject, body)
         return
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
-        if settings.smtp_starttls:
-            smtp.starttls()
-        if settings.smtp_user:
-            smtp.login(settings.smtp_user, settings.smtp_password)
-        smtp.send_message(msg)
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
+            if settings.smtp_starttls:
+                smtp.starttls()
+            if settings.smtp_user:
+                smtp.login(settings.smtp_user, settings.smtp_password)
+            smtp.send_message(msg)
+    except Exception as exc:
+        # Runs in a background task after the response, so log loudly: this is the only trace of a failure.
+        log.error("EMAIL FAILED to %s via %s:%s (%s: %s)", to, settings.smtp_host, settings.smtp_port,
+                  type(exc).__name__, exc)
+        return
+    log.info("EMAIL SENT to %s via %s:%s", to, settings.smtp_host, settings.smtp_port)
 
 
 def send_verification(to: str, name: str, token: str) -> None:

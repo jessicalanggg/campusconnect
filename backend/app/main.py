@@ -11,6 +11,8 @@ from app.api.routes import router
 from app.core.config import settings
 
 log = logging.getLogger("campusconnect")
+# Make app logs (e.g. "EMAIL SENT" / "EMAIL FAILED") visible in the host's log stream next to uvicorn's.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 
 def _matcher_loop(stop: threading.Event) -> None:

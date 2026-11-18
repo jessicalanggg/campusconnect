@@ -72,3 +72,12 @@ def test_metrics_count_only_verified_students(client):
     auth(client, "verified@upenn.edu")
     register(client, "unverified@upenn.edu")
     assert client.get("/api/metrics").json()["users"] == 1
+
+
+def test_email_failures_are_logged_not_raised(monkeypatch, caplog):
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "smtp_host", "127.0.0.1")
+    monkeypatch.setattr(settings, "smtp_port", 1)  # nothing listens here
+    with caplog.at_level("INFO", logger="campusconnect.email"):
+        email.send("s@upenn.edu", "Subject", "Body")
+    assert any("EMAIL FAILED to s@upenn.edu via 127.0.0.1:1" in r.getMessage() for r in caplog.records)
