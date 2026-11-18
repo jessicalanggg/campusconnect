@@ -48,7 +48,7 @@ describe('CampusConnect', () => {
     expect(screen.queryByRole('button', { name: 'Impact' })).not.toBeInTheDocument()
   })
 
-  it('gives admins an Admin tab with matching controls and metrics', async () => {
+  it('gives admins an Admin tab with only the matching controls', async () => {
     overrides['/auth/me'] = { body: { id: 1, email: 'admin@upenn.edu', name: 'Admin', is_admin: true } }
     overrides['/admin/match-runs'] = { body: [] }
     render(<App />)
@@ -56,8 +56,7 @@ describe('CampusConnect', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
     expect(screen.getByText('Matching control')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Run matching now/ })).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByText('72.5%')).toBeInTheDocument())
-    expect(screen.getByText('+20%')).toBeInTheDocument()
+    expect(screen.queryByText('Does it work?')).not.toBeInTheDocument()
   })
 
   it('browses open groups', async () => {
