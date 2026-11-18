@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml/badge.svg)](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml)
 
+**Live:** [campusconnect-o57p.onrender.com](https://campusconnect-o57p.onrender.com) (sign-up requires a Penn email)
+
 **Study groups for students who don't know anyone in the class.** GroupMe and Discord work when you already have friends in a course. CampusConnect matches **strangers**: tell it when you're free, what you want to work on and how fast you like to go. In the two weeks before each exam it forms groups that can actually meet, then tracks whether they did.
 
 React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitHub Actions
@@ -30,7 +32,7 @@ In small classes the main win is placement: with 30 students the ILP places **75
 
 ## Real-world results
 
-_Not launched yet. Results will go here after the first exam round, with the date range and the method behind each number._
+_The app is [live](https://campusconnect-o57p.onrender.com). Results will go here after the first exam round, with the date range and the method behind each number._
 
 Only students who **verified a Penn email address** count. The app tracks outcomes, not signups (`/api/metrics`, **Impact** tab):
 - the share of matched groups that met at least once and at least twice, from members' check-ins
