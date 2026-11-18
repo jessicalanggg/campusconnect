@@ -24,7 +24,7 @@ CampusConnect compares three matching algorithms on the same student pool. The 2
 | 250 | Local search | 98.5% | 0.623 | 2.24 |
 | 250 | **ILP (OR-Tools CP-SAT)** | **99.2%** | **0.674** (+20%) | **2.53** (+23%) |
 
-The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures are verified from live use in student popultations.
+The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures are verified from live use in student populations.
 
 The [live app](https://campusconnect-o57p.onrender.com) tracks outcomes through `/api/metrics`:
 - the share of matched groups that met at least once and at least twice, from members' check-ins
