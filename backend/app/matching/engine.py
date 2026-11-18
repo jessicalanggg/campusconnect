@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import time
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from itertools import combinations
 
 # Weekly grid: 7 days x 14 one-hour slots (08:00–22:00). Slot index = day * 14 + (hour - 8).
@@ -50,8 +50,14 @@ class MatchConfig:
     w_goal: float = 0.25
     w_pace: float = 0.15
     w_size: float = 0.20
-    neighbours: int = 12  # candidate generation: compatible partners considered per student
-    beam_width: int = 4
+    # Candidate generation: compatible partners considered per student, and groups kept per beam step.
+    # 20/6 beat 12/4 by ~4% quality at 250 students for the same runtime (see docs/benchmark.md ablations).
+    neighbours: int = 20
+    beam_width: int = 6
+    # Above this many students, split the class into availability clusters of ~subpool_size and solve each
+    # (a single ILP over 500+ students can't search its candidate pool within the time limit).
+    decompose_above: int = 300
+    subpool_size: int = 200
     local_search_seconds: float = 2.0
     ilp_seconds: float = 5.0
 
@@ -348,13 +354,96 @@ def ilp(students: list[Student], cfg: MatchConfig, seeds: list[Solution] | None 
     return Solution("ilp", groups, sorted(set(by_id) - covered), int((time.perf_counter() - t0) * 1000), stats)
 
 
+def _balanced_clusters(students: list[Student], k: int, seed: int = 0, iters: int = 12) -> list[list[Student]]:
+    """Split students into k equal-ish clusters of similar weekly availability (balanced k-means on the grid)."""
+    import numpy as np
+
+    X = np.zeros((len(students), NUM_SLOTS))
+    for row, st in enumerate(students):
+        X[row, list(st.slots)] = 1.0
+    X /= np.maximum(X.sum(axis=1, keepdims=True), 1.0) ** 0.5  # cosine-like: long schedules don't dominate
+    rng = np.random.default_rng(seed)
+    centers = X[rng.choice(len(students), size=k, replace=False)]
+    cap = -(-len(students) // k)  # ceil
+    assign = np.zeros(len(students), dtype=int)
+    for _ in range(iters):
+        dist = ((X[:, None, :] - centers[None, :, :]) ** 2).sum(axis=2)
+        # Most decided students choose first; each cluster takes at most `cap`.
+        order = np.argsort(np.sort(dist, axis=1)[:, 1] - dist.min(axis=1))[::-1]
+        counts = np.zeros(k, dtype=int)
+        for row in order:
+            for c in np.argsort(dist[row]):
+                if counts[c] < cap:
+                    assign[row], counts[c] = c, counts[c] + 1
+                    break
+        centers = np.stack([X[assign == c].mean(axis=0) if (assign == c).any() else centers[c] for c in range(k)])
+    return [[st for st, a in zip(students, assign) if a == c] for c in range(k)]
+
+
+def _objective(groups, by_id, cfg) -> tuple[int, float]:
+    return sum(map(len, groups)), sum(group_value([by_id[i] for i in g], cfg) for g in groups)
+
+
+def ilp_decomposed(students: list[Student], cfg: MatchConfig, seeds: list[Solution]) -> Solution:
+    """Large classes: solve availability clusters separately, then place leftovers; never worse than the seeds.
+
+    The ILP time budget is split across clusters in proportion to their size, so the total stays ~cfg.ilp_seconds.
+    """
+    t0 = time.perf_counter()
+    by_id = {s.id: s for s in students}
+    k = max(2, -(-len(students) // cfg.subpool_size))
+    groups: list[tuple[int, ...]] = []
+    leftovers: list[Student] = []
+    statuses, gaps = [], []
+    for cluster in _balanced_clusters(students, k):
+        sub_cfg = replace(cfg, ilp_seconds=max(1.0, cfg.ilp_seconds * len(cluster) / len(students)),
+                          local_search_seconds=cfg.local_search_seconds * len(cluster) / len(students))
+        g = greedy(cluster, sub_cfg)
+        sol = ilp(cluster, sub_cfg, [g, local_search(cluster, sub_cfg, g)])
+        groups += sol.groups
+        leftovers += [by_id[i] for i in sol.unassigned]
+        statuses.append(sol.stats.get("status"))
+        if sol.stats.get("quality_gap_pct") is not None:
+            gaps.append(sol.stats["quality_gap_pct"])
+    # Leftovers: join an existing group with room, else form groups among themselves.
+    members = {gi: [by_id[i] for i in g] for gi, g in enumerate(groups)}
+    still = []
+    for st in leftovers:
+        gi = best_insertion_for(st, members, cfg, min_quality=0.0)
+        if gi is None:
+            still.append(st)
+        else:
+            members[gi].append(st)
+    groups = [tuple(sorted(m.id for m in ms)) for ms in members.values()]
+    if len(still) >= cfg.min_size:
+        rest = ilp(still, replace(cfg, ilp_seconds=1.0), None)
+        groups += rest.groups
+    covered = {i for g in groups for i in g}
+    sol = Solution("ilp", groups, sorted(set(by_id) - covered), 0,
+                   {"decomposed": k, "status": "OPTIMAL" if statuses and all(x == "OPTIMAL" for x in statuses)
+                    else "FEASIBLE", "quality_gap_pct": max(gaps) if gaps else None,
+                    "candidates": None})
+    best_seed = max(seeds, key=lambda x: _objective(x.groups, by_id, cfg))
+    if _objective(best_seed.groups, by_id, cfg) > _objective(sol.groups, by_id, cfg):
+        sol = Solution("ilp", best_seed.groups, best_seed.unassigned, 0, {**sol.stats, "fell_back_to_seed": True})
+    sol.runtime_ms = int((time.perf_counter() - t0) * 1000)
+    return sol
+
+
+def ilp_auto(students: list[Student], cfg: MatchConfig, seeds: list[Solution]) -> Solution:
+    """What production runs: one ILP for normal class sizes, decomposition for very large ones."""
+    if len(students) > cfg.decompose_above:
+        return ilp_decomposed(students, cfg, seeds)
+    return ilp(students, cfg, seeds)
+
+
 def solve_all(students: list[Student], cfg: MatchConfig | None = None) -> dict[str, tuple[Solution, dict]]:
     """Run greedy, local search and ILP on the same pool; return each solution with its evaluation."""
     cfg = cfg or MatchConfig()
     by_id = {s.id: s for s in students}
     g = greedy(students, cfg)
     ls = local_search(students, cfg, g)
-    opt = ilp(students, cfg, [g, ls])
+    opt = ilp_auto(students, cfg, [g, ls])
     return {sol.algorithm: (sol, evaluate(sol, by_id, cfg)) for sol in (g, ls, opt)}
 
 

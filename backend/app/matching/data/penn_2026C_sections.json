@@ -1,0 +1,3256 @@
+{
+ "source": "Penn Labs Penn Course Plan public API (penncourseplan.com/api/base)",
+ "semester": "2026C",
+ "fetched_at": "2026-11-18",
+ "courses": {
+  "CIS-1200": {
+   "title": "Prog Lang & Tech I",
+   "sections": [
+    {
+     "id": "CIS-1200-001",
+     "activity": "LEC",
+     "capacity": 240,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ],
+      [
+       "M",
+       615,
+       674
+      ],
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-002",
+     "activity": "LEC",
+     "capacity": 240,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ],
+      [
+       "M",
+       720,
+       779
+      ],
+      [
+       "W",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-201",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-202",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-203",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-204",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-205",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-206",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-207",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-208",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-209",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-210",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-211",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-212",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-213",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-214",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-215",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-216",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-217",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1200-218",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ]
+     ]
+    }
+   ]
+  },
+  "CIS-1210": {
+   "title": "Prog Lang and Tech II",
+   "sections": [
+    {
+     "id": "CIS-1210-001",
+     "activity": "LEC",
+     "capacity": 290,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-201",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-202",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-203",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-204",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-205",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-206",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-207",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-208",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-209",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-210",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-211",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-212",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-213",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-214",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-215",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1210-216",
+     "activity": "REC",
+     "capacity": 20,
+     "meetings": [
+      [
+       "W",
+       1140,
+       1199
+      ]
+     ]
+    }
+   ]
+  },
+  "CIS-1600": {
+   "title": "Math Found Comp Sci",
+   "sections": [
+    {
+     "id": "CIS-1600-001",
+     "activity": "LEC",
+     "capacity": 140,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-002",
+     "activity": "LEC",
+     "capacity": 150,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-201",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-202",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-203",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-204",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-205",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-206",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-207",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-208",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-209",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-210",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-211",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "R",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-212",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "R",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-213",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "R",
+       1230,
+       1289
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-214",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-215",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-216",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "CIS-1600-217",
+     "activity": "REC",
+     "capacity": 16,
+     "meetings": [
+      [
+       "F",
+       930,
+       989
+      ]
+     ]
+    }
+   ]
+  },
+  "CIS-2400": {
+   "title": "Intro To Comp Systems",
+   "sections": [
+    {
+     "id": "CIS-2400-001",
+     "activity": "LEC",
+     "capacity": 222,
+     "meetings": [
+      [
+       "R",
+       825,
+       914
+      ],
+      [
+       "T",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-201",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-202",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-203",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "R",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-204",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "R",
+       1140,
+       1199
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-205",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-206",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-207",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-208",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "CIS-2400-209",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    }
+   ]
+  },
+  "MATH-1400": {
+   "title": "Calculus I",
+   "sections": [
+    {
+     "id": "MATH-1400-001",
+     "activity": "LEC",
+     "capacity": 94,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-002",
+     "activity": "LEC",
+     "capacity": 190,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-003",
+     "activity": "LEC",
+     "capacity": 190,
+     "meetings": [
+      [
+       "R",
+       720,
+       809
+      ],
+      [
+       "T",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-004",
+     "activity": "LEC",
+     "capacity": 160,
+     "meetings": [
+      [
+       "R",
+       825,
+       914
+      ],
+      [
+       "T",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-005",
+     "activity": "LEC",
+     "capacity": 94,
+     "meetings": [
+      [
+       "R",
+       930,
+       1019
+      ],
+      [
+       "T",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-201",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-202",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-203",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-204",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-205",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-206",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-207",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-208",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-209",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-210",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-211",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-212",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-213",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-214",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-215",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-216",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-217",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-218",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-219",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-220",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-221",
+     "activity": "REC",
+     "capacity": 31,
+     "meetings": [
+      [
+       "F",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-222",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1400-601",
+     "activity": "LEC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "M",
+       1140,
+       1259
+      ],
+      [
+       "W",
+       1140,
+       1259
+      ]
+     ]
+    }
+   ]
+  },
+  "MATH-1410": {
+   "title": "Calculus II",
+   "sections": [
+    {
+     "id": "MATH-1410-001",
+     "activity": "LEC",
+     "capacity": 90,
+     "meetings": [
+      [
+       "M",
+       510,
+       599
+      ],
+      [
+       "W",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-002",
+     "activity": "LEC",
+     "capacity": 88,
+     "meetings": [
+      [
+       "M",
+       615,
+       704
+      ],
+      [
+       "W",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-003",
+     "activity": "LEC",
+     "capacity": 90,
+     "meetings": [
+      [
+       "M",
+       720,
+       809
+      ],
+      [
+       "W",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-004",
+     "activity": "LEC",
+     "capacity": 160,
+     "meetings": [
+      [
+       "M",
+       825,
+       914
+      ],
+      [
+       "W",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-005",
+     "activity": "LEC",
+     "capacity": 160,
+     "meetings": [
+      [
+       "M",
+       930,
+       1019
+      ],
+      [
+       "W",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-201",
+     "activity": "REC",
+     "capacity": 32,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-202",
+     "activity": "REC",
+     "capacity": 36,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-203",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-204",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-205",
+     "activity": "REC",
+     "capacity": 32,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-206",
+     "activity": "REC",
+     "capacity": 34,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-207",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-208",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-209",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-210",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-211",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-212",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-214",
+     "activity": "REC",
+     "capacity": 33,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1410-215",
+     "activity": "REC",
+     "capacity": 32,
+     "meetings": [
+      [
+       "F",
+       720,
+       809
+      ]
+     ]
+    }
+   ]
+  },
+  "MATH-1070": {
+   "title": "Mathematics of change, Part I",
+   "sections": [
+    {
+     "id": "MATH-1070-001",
+     "activity": "LEC",
+     "capacity": 90,
+     "meetings": [
+      [
+       "M",
+       825,
+       914
+      ],
+      [
+       "W",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-003",
+     "activity": "LEC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "M",
+       720,
+       809
+      ],
+      [
+       "W",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-004",
+     "activity": "LEC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "M",
+       720,
+       809
+      ],
+      [
+       "W",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-005",
+     "activity": "LEC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "M",
+       930,
+       1019
+      ],
+      [
+       "W",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-006",
+     "activity": "LEC",
+     "capacity": 31,
+     "meetings": [
+      [
+       "M",
+       930,
+       1019
+      ],
+      [
+       "W",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-201",
+     "activity": "REC",
+     "capacity": 35,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-202",
+     "activity": "REC",
+     "capacity": 31,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-203",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       720,
+       809
+      ],
+      [
+       "T",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-204",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-205",
+     "activity": "REC",
+     "capacity": 27,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-206",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       720,
+       809
+      ],
+      [
+       "T",
+       720,
+       809
+      ]
+     ]
+    },
+    {
+     "id": "MATH-1070-207",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ]
+     ]
+    }
+   ]
+  },
+  "PHYS-0150": {
+   "title": "Principles I",
+   "sections": [
+    {
+     "id": "PHYS-0150-121",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "M",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-122",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "M",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-123",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "M",
+       1035,
+       1154
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-124",
+     "activity": "LAB",
+     "capacity": 10,
+     "meetings": [
+      [
+       "M",
+       1140,
+       1259
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-125",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "T",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-129",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "W",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-130",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "W",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-131",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "W",
+       1035,
+       1154
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-132",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "F",
+       1035,
+       1154
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-133",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "R",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-134",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "R",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-135",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1154
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-137",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "F",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-138",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "F",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-139",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "M",
+       720,
+       839
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-140",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "T",
+       720,
+       839
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-142",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "R",
+       720,
+       839
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-401",
+     "activity": "LEC",
+     "capacity": 80,
+     "meetings": [
+      [
+       "M",
+       510,
+       599
+      ],
+      [
+       "W",
+       510,
+       599
+      ],
+      [
+       "F",
+       510,
+       569
+      ],
+      [
+       "T",
+       1035,
+       1124
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-402",
+     "activity": "LEC",
+     "capacity": 72,
+     "meetings": [
+      [
+       "R",
+       510,
+       599
+      ],
+      [
+       "T",
+       510,
+       599
+      ],
+      [
+       "W",
+       510,
+       569
+      ],
+      [
+       "T",
+       1035,
+       1124
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-403",
+     "activity": "LEC",
+     "capacity": 60,
+     "meetings": [
+      [
+       "M",
+       720,
+       809
+      ],
+      [
+       "W",
+       720,
+       809
+      ],
+      [
+       "F",
+       720,
+       779
+      ],
+      [
+       "T",
+       1035,
+       1124
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-404",
+     "activity": "LEC",
+     "capacity": 80,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ],
+      [
+       "M",
+       615,
+       674
+      ],
+      [
+       "T",
+       1035,
+       1124
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0150-405",
+     "activity": "LEC",
+     "capacity": 72,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ],
+      [
+       "M",
+       615,
+       704
+      ],
+      [
+       "W",
+       615,
+       704
+      ],
+      [
+       "T",
+       1035,
+       1124
+      ]
+     ]
+    }
+   ]
+  },
+  "PHYS-0151": {
+   "title": "Principles II",
+   "sections": [
+    {
+     "id": "PHYS-0151-151",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "M",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-152",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "T",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-153",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "T",
+       1035,
+       1154
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-154",
+     "activity": "LAB",
+     "capacity": 9,
+     "meetings": [
+      [
+       "W",
+       1140,
+       1259
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-155",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "W",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-156",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "R",
+       825,
+       944
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-157",
+     "activity": "LAB",
+     "capacity": 15,
+     "meetings": [
+      [
+       "F",
+       930,
+       1049
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-401",
+     "activity": "LEC",
+     "capacity": 60,
+     "meetings": [
+      [
+       "R",
+       615,
+       704
+      ],
+      [
+       "T",
+       615,
+       704
+      ],
+      [
+       "W",
+       615,
+       674
+      ],
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "PHYS-0151-402",
+     "activity": "LEC",
+     "capacity": 72,
+     "meetings": [
+      [
+       "M",
+       825,
+       884
+      ],
+      [
+       "F",
+       825,
+       914
+      ],
+      [
+       "W",
+       825,
+       914
+      ],
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    }
+   ]
+  },
+  "ECON-0100": {
+   "title": "Intro Econ Micro",
+   "sections": [
+    {
+     "id": "ECON-0100-001",
+     "activity": "LEC",
+     "capacity": 286,
+     "meetings": [
+      [
+       "M",
+       615,
+       674
+      ],
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-002",
+     "activity": "LEC",
+     "capacity": 301,
+     "meetings": [
+      [
+       "M",
+       720,
+       779
+      ],
+      [
+       "W",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-003",
+     "activity": "LEC",
+     "capacity": 85,
+     "meetings": [
+      [
+       "M",
+       510,
+       569
+      ],
+      [
+       "W",
+       510,
+       569
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-201",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-202",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-203",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-204",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-205",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-206",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       510,
+       569
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-207",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-208",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-209",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-210",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-211",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-212",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-213",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-214",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-215",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-216",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-217",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-218",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-219",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-220",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-221",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-222",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-223",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-224",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-226",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-227",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-228",
+     "activity": "REC",
+     "capacity": 24,
+     "meetings": [
+      [
+       "R",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0100-601",
+     "activity": "LEC",
+     "capacity": 40,
+     "meetings": [
+      [
+       "M",
+       1035,
+       1214
+      ]
+     ]
+    }
+   ]
+  },
+  "ECON-0200": {
+   "title": "Intro Econ Macro",
+   "sections": [
+    {
+     "id": "ECON-0200-001",
+     "activity": "LEC",
+     "capacity": 111,
+     "meetings": [
+      [
+       "M",
+       615,
+       674
+      ],
+      [
+       "W",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-002",
+     "activity": "LEC",
+     "capacity": 111,
+     "meetings": [
+      [
+       "M",
+       720,
+       779
+      ],
+      [
+       "W",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-201",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-202",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-203",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-204",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "R",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-205",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "R",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-206",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-207",
+     "activity": "REC",
+     "capacity": 18,
+     "meetings": [
+      [
+       "R",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-208",
+     "activity": "REC",
+     "capacity": 18,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-209",
+     "activity": "REC",
+     "capacity": 23,
+     "meetings": [
+      [
+       "R",
+       510,
+       569
+      ]
+     ]
+    },
+    {
+     "id": "ECON-0200-210",
+     "activity": "REC",
+     "capacity": 25,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    }
+   ]
+  },
+  "CHEM-1011": {
+   "title": "Intro to Gen Chem I",
+   "sections": [
+    {
+     "id": "CHEM-1011-001",
+     "activity": "LEC",
+     "capacity": 120,
+     "meetings": [
+      [
+       "F",
+       930,
+       1019
+      ],
+      [
+       "M",
+       930,
+       1019
+      ],
+      [
+       "W",
+       930,
+       1019
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-002",
+     "activity": "LEC",
+     "capacity": 132,
+     "meetings": [
+      [
+       "F",
+       615,
+       704
+      ],
+      [
+       "M",
+       615,
+       704
+      ],
+      [
+       "W",
+       615,
+       704
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-201",
+     "activity": "REC",
+     "capacity": 43,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-202",
+     "activity": "REC",
+     "capacity": 42,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-203",
+     "activity": "REC",
+     "capacity": 43,
+     "meetings": [
+      [
+       "R",
+       510,
+       569
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-204",
+     "activity": "REC",
+     "capacity": 42,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-205",
+     "activity": "REC",
+     "capacity": 42,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1094
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-206",
+     "activity": "REC",
+     "capacity": 42,
+     "meetings": [
+      [
+       "R",
+       510,
+       569
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-601",
+     "activity": "LEC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       1035,
+       1214
+      ]
+     ]
+    },
+    {
+     "id": "CHEM-1011-602",
+     "activity": "REC",
+     "capacity": 30,
+     "meetings": [
+      [
+       "R",
+       1215,
+       1274
+      ]
+     ]
+    }
+   ]
+  },
+  "BIOL-1101": {
+   "title": "Intro Biology A",
+   "sections": [
+    {
+     "id": "BIOL-1101-001",
+     "activity": "LEC",
+     "capacity": 201,
+     "meetings": [
+      [
+       "M",
+       720,
+       809
+      ],
+      [
+       "W",
+       720,
+       809
+      ],
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-101",
+     "activity": "LAB",
+     "capacity": 21,
+     "meetings": [
+      [
+       "M",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-102",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "M",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-103",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       615,
+       794
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-104",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       615,
+       794
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-105",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "T",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-106",
+     "activity": "LAB",
+     "capacity": 19,
+     "meetings": [
+      [
+       "W",
+       510,
+       689
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-107",
+     "activity": "LAB",
+     "capacity": 21,
+     "meetings": [
+      [
+       "W",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-108",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       615,
+       794
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-109",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-110",
+     "activity": "LAB",
+     "capacity": 20,
+     "meetings": [
+      [
+       "R",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-601",
+     "activity": "LEC",
+     "capacity": 44,
+     "meetings": [
+      [
+       "F",
+       1035,
+       1214
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-602",
+     "activity": "LAB",
+     "capacity": 22,
+     "meetings": [
+      [
+       "F",
+       825,
+       1004
+      ]
+     ]
+    },
+    {
+     "id": "BIOL-1101-603",
+     "activity": "LAB",
+     "capacity": 22,
+     "meetings": [
+      [
+       "S",
+       510,
+       689
+      ]
+     ]
+    }
+   ]
+  },
+  "STAT-1110": {
+   "title": "Introductory Statistics",
+   "sections": [
+    {
+     "id": "STAT-1110-001",
+     "activity": "LEC",
+     "capacity": 148,
+     "meetings": [
+      [
+       "R",
+       825,
+       884
+      ],
+      [
+       "T",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-002",
+     "activity": "LEC",
+     "capacity": 148,
+     "meetings": [
+      [
+       "R",
+       930,
+       989
+      ],
+      [
+       "T",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-201",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-202",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-203",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-204",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-205",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       615,
+       674
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-206",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       720,
+       779
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-207",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       825,
+       884
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-208",
+     "activity": "REC",
+     "capacity": 37,
+     "meetings": [
+      [
+       "F",
+       930,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "STAT-1110-601",
+     "activity": "LEC",
+     "capacity": 40,
+     "meetings": [
+      [
+       "W",
+       1035,
+       1214
+      ]
+     ]
+    }
+   ]
+  },
+  "ESE-2150": {
+   "title": "Elec Circuits & Sys",
+   "sections": [
+    {
+     "id": "ESE-2150-001",
+     "activity": "LEC",
+     "capacity": 112,
+     "meetings": [
+      [
+       "M",
+       825,
+       914
+      ],
+      [
+       "W",
+       825,
+       914
+      ]
+     ]
+    },
+    {
+     "id": "ESE-2150-101",
+     "activity": "LAB",
+     "capacity": 56,
+     "meetings": [
+      [
+       "F",
+       615,
+       794
+      ]
+     ]
+    },
+    {
+     "id": "ESE-2150-102",
+     "activity": "LAB",
+     "capacity": 56,
+     "meetings": [
+      [
+       "F",
+       825,
+       1004
+      ]
+     ]
+    }
+   ]
+  }
+ }
+}

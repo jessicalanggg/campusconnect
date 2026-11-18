@@ -16,15 +16,25 @@ React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitH
 
 ## Results
 
-CampusConnect compares three matching algorithms on the same student pool. The 250-student benchmark results are:
+CampusConnect's matcher is benchmarked against simpler strategies on the same simulated students, with paired trials and 95% confidence intervals.
 
-| Students | Algorithm | Placed | Avg match quality | Shared free hours / week |
-|---:|---|---:|---:|---:|
-| 250 | Greedy baseline | 97.9% | 0.561 | 2.05 |
-| 250 | Local search | 98.5% | 0.623 | 2.24 |
-| 250 | **ILP (OR-Tools CP-SAT)** | **99.2%** | **0.674** (+20%) | **2.53** (+23%) |
+**Real Penn class schedules** ([report](docs/benchmark_penn.md)). Each simulated student's busy hours come from actual Fall 2026 section meeting times for CIS 1200, MATH 1400, ECON 0100 and PHYS 0150 (250-student pools, 200 paired trials):
 
-The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures are verified from live use in student populations.
+| Strategy | Placed | Avg match quality | Shared free hours / week |
+|---|---:|---:|---:|
+| Sign-up sheet (first come) | 94.1% | 0.540 | 2.04 |
+| Greedy baseline | 99.6% | 0.557 | 2.06 |
+| Local search | 99.8% | 0.677 | 2.49 |
+| **ILP (OR-Tools CP-SAT)** | **99.9%** | **0.753** (+35.2% vs greedy, 95% CI +34.3 to +36.1) | **2.98** (+44.5%) |
+
+**Synthetic populations** ([report](docs/benchmark.md)):
+- **250 students** (100 trials): +25.3% match quality over greedy (95% CI +24.6 to +26.0) and +28.3% over a sign-up sheet. The ILP beat greedy in all 100 trials.
+- **Large classes:** above 300 students the class is split into clusters with similar free time. At 500 students this adds +5.0% quality over a single ILP (95% CI +3.6 to +6.4).
+- **Harder populations:** gains hold for busy students with little free time (+12.5%) and for widely mixed preferences (+29.3%).
+
+**Load test** ([report](docs/loadtest.md)): 500 simulated students and 2,795 requests against the real API (4 workers) and PostgreSQL. That covered simultaneous sign-ups and requests, matching rounds under load, leaving, rescheduling and withdrawing, and 166 students racing for 3 last seats. After every phase the database showed 0 overfilled groups, 0 double placements and 0 mismatched memberships, with 0 server errors and 0 deadlocks.
+
+All of these are algorithm and system tests on simulated students, not usage results.
 
 The [live app](https://campusconnect-o57p.onrender.com) tracks outcomes through `/api/metrics`:
 - the share of matched groups that met at least once and at least twice, from members' check-ins
@@ -132,9 +142,11 @@ Outside Docker, Vite can't reach the proxy host `backend`. Either set `VITE_API_
 ## Tests
 
 ```bash
-cd backend && pip install -r requirements-dev.txt && pytest -q && ruff check app tests seed.py
+cd backend && pip install -r requirements-dev.txt && pytest -q && ruff check app tests seed.py loadtest
 cd frontend && npm install && npm run test && npm run lint && npm run build
-python -m app.matching.benchmark --out ../docs/benchmark.md   # from backend/: regenerate the benchmark
+python -m app.matching.evaluate --out-md ../docs/benchmark.md --out-json ../docs/benchmark_results.json  # from backend/: synthetic benchmark (~70 min)
+python -m app.matching.evaluate --penn --out-md ../docs/benchmark_penn.md --out-json ../docs/benchmark_penn_results.json  # real Penn schedules (~25 min)
+DATABASE_URL=postgresql+psycopg://... python -m loadtest.run --students 500 --out-md ../docs/loadtest.md  # empty scratch Postgres
 ```
 
 ## Deploying
@@ -147,4 +159,4 @@ See [docs/deploy.md](docs/deploy.md). In short: Render → New → Blueprint →
 - **Rate limits** are kept in memory, so they're per instance. That's fine for one instance; use Redis to scale out.
 - **Data entry:** students enter availability by hand. Calendar import is a natural next step.
 
-More docs: [matching design](docs/matching.md) · [benchmark](docs/benchmark.md) · [deploy](docs/deploy.md) · [architecture](docs/architecture.md) · [ER schema](docs/schema.md) · [API](docs/api.md)
+More docs: [matching design](docs/matching.md) · [benchmark](docs/benchmark.md) · [Penn schedules benchmark](docs/benchmark_penn.md) · [load test](docs/loadtest.md) · [deploy](docs/deploy.md) · [architecture](docs/architecture.md) · [ER schema](docs/schema.md) · [API](docs/api.md)

@@ -1,0 +1,194 @@
+{
+ "phases": [
+  {
+   "phase": "1. sign-up",
+   "requests": 1584,
+   "seconds": 48.19,
+   "invariants": {
+    "overfilled_groups": 0,
+    "students_in_two_groups": 0,
+    "matched_requests_without_membership": 0,
+    "memberships_without_matched_request": 0,
+    "students_with_two_active_requests": 0,
+    "groups": 0,
+    "matched": 0,
+    "waiting": 0,
+    "open_seats": 0
+   }
+  },
+  {
+   "phase": "2. requests",
+   "requests": 500,
+   "seconds": 5.65,
+   "invariants": {
+    "overfilled_groups": 0,
+    "students_in_two_groups": 0,
+    "matched_requests_without_membership": 0,
+    "memberships_without_matched_request": 0,
+    "students_with_two_active_requests": 0,
+    "groups": 0,
+    "matched": 0,
+    "waiting": 500,
+    "open_seats": 0
+   }
+  },
+  {
+   "phase": "3. matching",
+   "requests": 63,
+   "seconds": 15.29,
+   "invariants": {
+    "overfilled_groups": 0,
+    "students_in_two_groups": 0,
+    "matched_requests_without_membership": 0,
+    "memberships_without_matched_request": 0,
+    "students_with_two_active_requests": 0,
+    "groups": 144,
+    "matched": 562,
+    "waiting": 0,
+    "open_seats": 302
+   }
+  },
+  {
+   "phase": "4. churn",
+   "requests": 482,
+   "seconds": 20.89,
+   "invariants": {
+    "overfilled_groups": 0,
+    "students_in_two_groups": 0,
+    "matched_requests_without_membership": 0,
+    "memberships_without_matched_request": 0,
+    "students_with_two_active_requests": 0,
+    "groups": 148,
+    "matched": 558,
+    "waiting": 21,
+    "open_seats": 318
+   }
+  },
+  {
+   "phase": "5. last seats",
+   "requests": 166,
+   "seconds": 8.9,
+   "invariants": {
+    "overfilled_groups": 0,
+    "students_in_two_groups": 0,
+    "matched_requests_without_membership": 0,
+    "memberships_without_matched_request": 0,
+    "students_with_two_active_requests": 0,
+    "groups": 148,
+    "matched": 561,
+    "waiting": 184,
+    "open_seats": 315
+   }
+  }
+ ],
+ "race": {
+  "target_groups": [
+   6,
+   23,
+   38
+  ],
+  "open_seats_in_targets": 3,
+  "racers": 166,
+  "target_groups_full_after": 1,
+  "racers_placed": 3
+ },
+ "latency_ms": {
+  "POST /auth/register": {
+   "n": 792,
+   "p50": 2263.9441044884734,
+   "p95": 8896.26392473001,
+   "p99": 14435.033401050614,
+   "mean": 3111.065914778855
+  },
+  "POST /auth/login": {
+   "n": 792,
+   "p50": 1936.775396054145,
+   "p95": 7932.577089685933,
+   "p99": 11898.140015058467,
+   "mean": 2723.528979653951
+  },
+  "POST /match/requests": {
+   "n": 791,
+   "p50": 1522.9875419754535,
+   "p95": 13455.561312497593,
+   "p99": 14829.005482757932,
+   "mean": 2957.9217160319586
+  },
+  "POST /admin/courses/{id}/match": {
+   "n": 2,
+   "p50": 10444.895791995805,
+   "p95": 12205.3585292364,
+   "p99": 12361.844105880009,
+   "mean": 10444.895791995805
+  },
+  "DELETE /match/requests/{id}": {
+   "n": 46,
+   "p50": 6365.36216706736,
+   "p95": 10504.023229761515,
+   "p99": 13722.971895994846,
+   "mean": 5906.850309850162
+  },
+  "GET /groups/mine": {
+   "n": 93,
+   "p50": 1285.1406659465283,
+   "p95": 8271.222058148122,
+   "p99": 12517.272611334918,
+   "mean": 2455.517104374976
+  },
+  "DELETE /groups/{id}/members/me": {
+   "n": 93,
+   "p50": 4326.039958978072,
+   "p95": 10330.730450060213,
+   "p99": 13198.774238098405,
+   "mean": 5032.833501408678
+  },
+  "PATCH /match/requests/{id}": {
+   "n": 93,
+   "p50": 4146.101249963976,
+   "p95": 8859.253908414392,
+   "p99": 9269.051704998124,
+   "mean": 4823.371313213151
+  },
+  "GET /match/requests": {
+   "n": 93,
+   "p50": 2.360125072300434,
+   "p95": 520.8357500378042,
+   "p99": 2942.0696106273676,
+   "mean": 117.9305068104558
+  }
+ },
+ "status": {
+  "POST /auth/register": {
+   "201": 792
+  },
+  "POST /auth/login": {
+   "200": 792
+  },
+  "POST /match/requests": {
+   "201": 791
+  },
+  "POST /admin/courses/{id}/match": {
+   "200": 2
+  },
+  "DELETE /match/requests/{id}": {
+   "204": 46
+  },
+  "GET /groups/mine": {
+   "200": 93
+  },
+  "DELETE /groups/{id}/members/me": {
+   "204": 93
+  },
+  "PATCH /match/requests/{id}": {
+   "200": 93
+  },
+  "GET /match/requests": {
+   "200": 93
+  }
+ },
+ "transport_errors": [],
+ "elapsed_s": 99.8,
+ "students": 500,
+ "workers": 4,
+ "concurrency": 100
+}

@@ -4,8 +4,9 @@ from app.matching import evaluate as ev
 def test_quick_evaluation_runs_and_reports():
     res = ev.run(ev.QUICK)
     text = ev.report(res)
-    for heading in ("ILP vs greedy by class size", "Optimality", "Harder and easier populations", "Ablations",
-                    "Scaling", "Limitations"):
+    for heading in ("ILP vs greedy by class size", "Optimality", "Against simpler strategies",
+                    "Large classes: decomposition", "Harder and easier populations", "Ablations", "Scaling",
+                    "Limitations"):
         assert heading in text
     # Paired design: every algorithm in a trial saw the same population.
     trial = res["raw"]["main_30"][0]

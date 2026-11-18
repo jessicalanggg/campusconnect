@@ -32,11 +32,23 @@ Shared time uses the **true group intersection**, not pairwise overlaps. Three p
 1. **Greedy (baseline).** Hardest-to-place students go first (fewest free hours). Each one joins the existing group with the best marginal gain that stays feasible and doesn't grow past anyone's preferred size; otherwise they start a new group. Groups that end up undersized are dissolved, and their members are reinserted where possible.
 2. **Local search.** Starts from greedy and hill-climbs over four moves: insert an unassigned student, pair up unassigned students, move a student, swap two students.
 3. **ILP.**
-   - Generate a candidate pool: from each student, beam-search over their 12 most compatible partners. Add every group from the greedy and local-search solutions.
+   - Generate a candidate pool: from each student, beam-search (keeping the best 6 groups per step) over their 20 most compatible partners. Add every group from the greedy and local-search solutions. An ablation study picked 20/6 over the earlier 12/4: at 250 students it raises the gain over greedy from +20.1% to +25.4% at about the same runtime ([benchmark](benchmark.md#ablations-250-students-50-paired-trials)). An even larger 30/8 pool scored +27.5% for about 0.4s more and is a candidate for the next tuning pass.
    - Choose disjoint groups: binary `x_G` per candidate, `Σ_{G∋i} x_G ≤ 1` for each student.
    - Objective, lexicographic: maximise `Σ x_G · |G| · (BIG + quality(G))`. Coverage comes first (every placed student is worth more than any possible quality gain), then quality.
    - The solver is hinted with the local-search solution. Because those groups are in the pool, the ILP is **never worse** than either baseline.
    - Caveat: the result is optimal *over the candidate pool*, not over all possible groupings, which is intractable at this size.
+4. **Decomposition for large classes (over 300 students).** A single ILP over 500+ students can't search its candidate pool within the time limit: its optimality gap grows, and a bigger pool even makes it worse. So production splits the class into balanced clusters of about 200 students with similar free time (k-means on the weekly availability grid), and solves each cluster with its share of the time budget.
+   - Students left over join a group with room or form new groups among themselves.
+   - The result is compared with whole-class local search, and the better one is kept, so it's still never worse than either baseline.
+   - Groups can't span clusters, which costs little because students in different clusters rarely share free time.
+   - Measured gain over a single ILP: +5.0% quality at 500 students (95% CI +3.6 to +6.4, 50 trials). At 1,000 and 2,000 students the point estimates are positive (+2.9%, +5.5%) but with only 5 and 3 trials the intervals include zero ([benchmark](benchmark.md#large-classes-decomposition)).
+
+**Comparison strategies** (`app/matching/baselines.py`), used only in the benchmarks:
+- **random groups of 4:** a floor
+- **first-come:** a sign-up sheet; each student joins the first group with room that still shares free time
+- **availability clustering:** k-means on free time into groups of about 4, with greedy repair; the obvious ML-style approach
+
+All of them return only groups that can actually meet, and leave everyone else unplaced.
 
 ## Lifecycle
 
@@ -53,7 +65,9 @@ Shared time uses the **true group intersection**, not pairwise overlaps. Three p
 ## Measuring it
 
 - Every round writes a `match_runs` row with greedy, local-search and ILP quality and shared hours, all computed on the same students. `/api/metrics` aggregates these, weighted by students placed.
-- [`benchmark.md`](benchmark.md) compares the solvers on synthetic populations. Regenerate it with `python -m app.matching.benchmark --out ../docs/benchmark.md`.
+- [`benchmark.md`](benchmark.md) compares the solvers on synthetic populations. Regenerate it with `python -m app.matching.evaluate --out-md ../docs/benchmark.md --out-json ../docs/benchmark_results.json`.
+- [`benchmark_penn.md`](benchmark_penn.md) repeats the comparison with busy hours from real Penn Fall 2026 class schedules (`--penn`).
+- [`loadtest.md`](loadtest.md) checks correctness under concurrent HTTP load against PostgreSQL (`python -m loadtest.run`).
 - Outcome metrics at `/api/metrics`:
   - % of matched groups (at least a week old) that reported meeting at least once and at least twice
   - retention: students who used matching in two or more course/exam cycles
