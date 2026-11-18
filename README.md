@@ -9,10 +9,11 @@
 
 React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitHub Actions
 
-<p>
-  <img src="docs/images/match.png" alt="Matching page: course, study goal, pace, preferred group size and a weekly availability grid" width="67%">
-  <img src="docs/images/group.png" alt="A matched group showing the hours every member is free, the members, and a 'did your group meet?' check-in" width="30%">
+<p align="center">
+  <img src="docs/images/demo.gif" alt="Demo: a student picks CIS 1210, paints Tuesday and Thursday evenings on the availability grid and joins the pool; an admin runs a matching round that compares greedy, local search and the ILP; the student opens their matched group showing the hours everyone is free" width="100%">
 </p>
+
+<sub>Demo with simulated classmates on a local copy of the app (21 seconds).</sub>
 
 ## Results
 
