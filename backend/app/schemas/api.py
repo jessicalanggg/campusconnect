@@ -57,43 +57,20 @@ class CourseOut(BaseModel):
     department: str
 
 
-class GroupCreate(BaseModel):
-    course_id: int
-    title: str = Field(min_length=3, max_length=120)
-    description: str = Field(default="", max_length=3000)
-    max_members: int = Field(default=8, ge=2, le=100)
-
-
-class GroupUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=3, max_length=120)
-    description: str | None = Field(default=None, max_length=3000)
-    max_members: int | None = Field(default=None, ge=2, le=100)
-
-
 class GroupOut(BaseModel):
+    """A study group formed by the matcher."""
     id: int
     course_id: int
     course_code: str
-    owner_id: int | None
     title: str
     description: str
     max_members: int
     member_count: int
     created_at: datetime
-    kind: Literal["manual", "matched"] = "manual"
     match_quality: float | None = None
     common_slots: list[int] = []
-    waitlist_count: int = 0
     meetings_reported: int = 0
-    viewer_status: Literal["member", "waitlisted"] | None = None
-    viewer_waitlist_position: int | None = None
-
-
-class Page(BaseModel):
-    items: list[GroupOut]
-    total: int
-    page: int
-    page_size: int
+    viewer_status: Literal["member"] | None = None
 
 
 Goal = Literal["exam_prep", "homework", "concepts", "projects"]

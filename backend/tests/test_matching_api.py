@@ -29,14 +29,16 @@ def test_batch_match_instant_fill_and_metrics(client):
     run = client.post("/api/admin/courses/1/match", headers=admin).json()
     assert run["students"] == 3 and run["assigned"] == 3 and run["groups_created"] == 1
     mine = client.get("/api/groups/mine", headers=students[0]).json()
-    assert len(mine) == 1 and mine[0]["kind"] == "matched" and mine[0]["member_count"] == 3
-    assert mine[0]["owner_id"] is None and "Mon 18:00–21:00" in mine[0]["description"]
+    assert len(mine) == 1 and mine[0]["member_count"] == 3
+    assert "Mon 18:00–21:00" in mine[0]["description"]
     gid = mine[0]["id"]
 
-    # Matched groups are not joinable directly and don't appear in the manual explore list by default.
-    assert client.post(f"/api/groups/{gid}/join", headers=students[3]).status_code == 409
-    assert client.get("/api/groups").json()["total"] == 0
-    assert client.get("/api/groups?kind=matched").json()["total"] == 1
+    # Groups are private: non-members can't see them, members and admins can.
+    assert client.get(f"/api/groups/{gid}", headers=students[3]).status_code == 404
+    assert client.get(f"/api/groups/{gid}/members", headers=students[3]).status_code == 404
+    assert client.get(f"/api/groups/{gid}").status_code == 401
+    assert len(client.get(f"/api/groups/{gid}/members", headers=students[0]).json()) == 3
+    assert client.get(f"/api/groups/{gid}", headers=admin).json()["viewer_status"] is None
 
     # A late student who fits is placed instantly into the open seat.
     late = request(client, students[3])
@@ -60,7 +62,7 @@ def test_leave_rematch_dissolve_and_schedule_change(client, session_factory):
     r = client.patch(f"/api/match/requests/{reqs[0]['id']}", headers=hs[0],
                      json={"availability": slots(5, 10, 14)}).json()
     assert r["status"] == "waiting" and r["group_id"] is None
-    assert client.get(f"/api/groups/{gid}").json()["member_count"] == 2
+    assert client.get(f"/api/groups/{gid}", headers=admin).json()["member_count"] == 2
 
     # Fixing the schedule doesn't put them back automatically unless they fit; they do, so they're refilled.
     r = client.patch(f"/api/match/requests/{reqs[0]['id']}", headers=hs[0], json={"availability": EVENING}).json()
@@ -74,36 +76,11 @@ def test_leave_rematch_dissolve_and_schedule_change(client, session_factory):
         assert db.get(MatchRequest, mine["id"]).left_group_ids == [gid]
 
     # Down to 2 members: the group survives. One more leaves → dissolved, last member requeued.
-    assert client.get(f"/api/groups/{gid}").json()["member_count"] == 2
+    assert client.get(f"/api/groups/{gid}", headers=admin).json()["member_count"] == 2
     client.delete(f"/api/groups/{gid}/members/me", headers=hs[2])
-    assert client.get(f"/api/groups/{gid}").json()["member_count"] == 0
+    assert client.get(f"/api/groups/{gid}", headers=admin).json()["member_count"] == 0
     assert client.get("/api/match/requests", headers=hs[0]).json()[0]["status"] == "waiting"
     assert client.get("/api/match/requests", headers=hs[2]).json()[0]["status"] == "withdrawn"
-
-
-def test_waitlist_fifo_promotion(client):
-    owner, a, b, c = (auth(client, f"{n}@upenn.edu") for n in ("owner", "a", "b", "c"))
-    gid = client.post("/api/groups", headers=owner, json={"course_id": 1, "title": "Full group",
-                                                          "max_members": 2}).json()["id"]
-    assert client.post(f"/api/groups/{gid}/waitlist", headers=a).status_code == 409  # seats still open
-    assert client.post(f"/api/groups/{gid}/join", headers=a).status_code == 200
-    assert client.post(f"/api/groups/{gid}/join", headers=b).status_code == 409
-    assert client.post(f"/api/groups/{gid}/waitlist", headers=b).status_code == 201
-    w = client.post(f"/api/groups/{gid}/waitlist", headers=c).json()
-    assert w["viewer_status"] == "waitlisted" and w["viewer_waitlist_position"] == 2 and w["waitlist_count"] == 2
-    assert client.post(f"/api/groups/{gid}/waitlist", headers=c).status_code == 409
-
-    # A seat opens → the earliest waitlisted student (b) is promoted, not c.
-    assert client.delete(f"/api/groups/{gid}/members/me", headers=a).status_code == 204
-    assert client.get(f"/api/groups/{gid}", headers=b).json()["viewer_status"] == "member"
-    g = client.get(f"/api/groups/{gid}", headers=c).json()
-    assert g["viewer_status"] == "waitlisted" and g["viewer_waitlist_position"] == 1
-
-    # Raising capacity promotes the rest; lowering below membership is refused.
-    assert client.patch(f"/api/groups/{gid}", headers=owner, json={"max_members": 3}).json()["waitlist_count"] == 0
-    assert client.get(f"/api/groups/{gid}", headers=c).json()["viewer_status"] == "member"
-    assert client.patch(f"/api/groups/{gid}", headers=owner, json={"max_members": 2}).status_code == 409
-    assert len(client.get("/api/groups/mine", headers=c).json()) == 1
 
 
 def test_checkins_feed_meeting_metrics(client, session_factory):

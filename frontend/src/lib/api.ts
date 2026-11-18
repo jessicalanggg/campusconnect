@@ -1,15 +1,13 @@
 export type User = { id: number; name: string; email: string; is_admin?: boolean }
 export type SignupConfig = { allowed_email_domains: string[]; require_email_verification: boolean }
 export type Course = { id: number; code: string; title: string; department: string }
+/** A study group formed by the matcher (students never create or join groups directly). */
 export type Group = {
-  id: number; course_id: number; course_code: string; owner_id: number | null; title: string; description: string
+  id: number; course_id: number; course_code: string; title: string; description: string
   max_members: number; member_count: number; created_at: string
-  kind: 'manual' | 'matched'; match_quality: number | null; common_slots: number[]
-  waitlist_count: number; meetings_reported: number
-  viewer_status: 'member' | 'waitlisted' | null; viewer_waitlist_position: number | null
+  match_quality: number | null; common_slots: number[]; meetings_reported: number
+  viewer_status: 'member' | null
 }
-export type GroupPage = { items: Group[]; total: number; page: number; page_size: number }
-export type GroupInput = { course_id: number; title: string; description: string; max_members: number }
 export type Goal = 'exam_prep' | 'homework' | 'concepts' | 'projects'
 export type MatchRequest = {
   id: number; course_id: number; course_code: string; exam_id: number | null; goal: Goal; pace: number

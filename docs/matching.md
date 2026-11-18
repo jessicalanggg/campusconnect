@@ -44,7 +44,11 @@ Shared time uses the **true group intersection**, not pairwise overlaps. Three p
 - **Instant fill.** A new request is placed straight into an existing matched group with an open seat if the group stays feasible and quality is ≥ 0.5. Otherwise the student waits for the next round.
 - **Rematch on leave.** "Find me a new group" requeues the student and records the group, so they're never put back into it. A group that drops below 2 members is dissolved and the remaining member is requeued. Open seats are refilled from the waiting pool.
 - **Rematch on schedule change.** If an updated schedule breaks the group's shared time, the student leaves that group and is rematched. The group's shared time is recomputed and its seat refilled.
-- **Concurrency.** Every matching workflow takes a per-course PostgreSQL advisory transaction lock, so the scheduler and API requests never interleave on one course. Joins to manual groups and waitlist promotion lock the group row (`SELECT … FOR UPDATE`). Waitlist promotion is strict FIFO.
+- **Concurrency.**
+  - Every matching workflow takes a per-course PostgreSQL advisory transaction lock, so the scheduler and API requests never interleave on one course.
+  - Underneath that, placing a student locks the student's request row and the group row (`SELECT … FOR UPDATE`), then re-checks capacity and fit before inserting. A group is never overfilled and a student is never placed twice, even without the advisory lock.
+  - Open seats are offered to waiting students oldest first.
+  - [`tests/test_concurrency_postgres.py`](../backend/tests/test_concurrency_postgres.py) races up to 10 simultaneous placements against a real PostgreSQL in CI. It fails on the code from before the re-check was added.
 
 ## Measuring it
 

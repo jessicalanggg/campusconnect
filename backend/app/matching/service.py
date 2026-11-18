@@ -1,8 +1,9 @@
-"""Database-facing matching workflows: batch runs, instant fills, rematching, waitlists and metrics.
+"""Database-facing matching workflows: batch runs, instant fills, rematching and metrics.
 
-Concurrency: every workflow that changes matched-group membership for a course first takes a per-course
-PostgreSQL advisory transaction lock, so the scheduler and API requests never interleave on the same course.
-Manual-group joins/leaves lock the group row (SELECT ... FOR UPDATE) instead.
+Concurrency: every workflow that changes group membership for a course first takes a per-course PostgreSQL advisory
+transaction lock, so the scheduler and API requests never interleave on the same course. Underneath that, placing a
+student locks the request row and the group row (SELECT ... FOR UPDATE) and re-checks capacity, so a group is never
+overfilled and a student is never placed twice even without the advisory lock (see tests/test_concurrency_postgres.py).
 """
 from __future__ import annotations
 
@@ -15,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.matching.engine import MatchConfig, Student, best_insertion_for, describe_slots, score_group, solve_all
 from app.models.entities import (Course, Exam, MatchRequest, MatchRun, MeetingCheckin, Membership, StudyGroup, User,
-                                 WaitlistEntry, utcnow)
+                                 utcnow)
 
 ADVISORY_NAMESPACE = 4242
 DISSOLVE_BELOW = 2  # a matched group with fewer members than this is dissolved and its members requeued
@@ -39,7 +40,8 @@ def lock_course(db: Session, course_id: int) -> None:
 
 
 def lock_group(db: Session, group_id: int) -> StudyGroup | None:
-    return db.scalar(select(StudyGroup).where(StudyGroup.id == group_id).with_for_update())
+    return db.scalar(select(StudyGroup).where(StudyGroup.id == group_id).with_for_update()
+                     .execution_options(populate_existing=True))
 
 
 def to_student(req: MatchRequest) -> Student:
@@ -111,19 +113,40 @@ def open_matched_groups(db: Session, course_id: int) -> dict[int, list[MatchRequ
 
 
 def try_instant_fill(db: Session, req: MatchRequest, open_groups: dict[int, list[MatchRequest]] | None = None) -> bool:
-    """Place a waiting student straight into an existing matched group with a vacancy, if they fit well."""
+    """Place a waiting student straight into an existing matched group with a vacancy, if they fit well.
+
+    Safe under concurrency on PostgreSQL even without the per-course advisory lock:
+    the request row is locked so two refills can't place the same student twice, and the target group's row is
+    locked before capacity and fit are re-checked, so two students can never take the last seat.
+    """
     open_groups = open_matched_groups(db, req.course_id) if open_groups is None else open_groups
-    eligible = {gid: [to_student(r) for r in reqs] for gid, reqs in open_groups.items()
-                if gid not in (req.left_group_ids or [])}
-    gid = best_insertion_for(to_student(req), eligible, config(), INSTANT_FILL_MIN_QUALITY)
-    if gid is None:
+    locked = db.scalar(select(MatchRequest).where(MatchRequest.id == req.id).with_for_update()
+                       .execution_options(populate_existing=True))
+    if locked is None or locked.status != "waiting":
         return False
-    group = lock_group(db, gid)
-    _place(db, req, group)
-    db.flush()
-    refresh_group(db, group)
-    open_groups[gid] = open_groups[gid] + [req]
-    return True
+    student = to_student(req)
+    candidates = {gid: reqs for gid, reqs in open_groups.items() if gid not in (req.left_group_ids or [])}
+    while candidates:
+        gid = best_insertion_for(student, {g: [to_student(r) for r in rs] for g, rs in candidates.items()},
+                                 config(), INSTANT_FILL_MIN_QUALITY)
+        if gid is None:
+            return False
+        group = lock_group(db, gid)
+        # Re-check under the row lock: another transaction may have taken the seat (or changed the group) since
+        # the snapshot above was read.
+        members = matched_requests(db, gid)
+        fits = best_insertion_for(student, {gid: [to_student(r) for r in members]}, config(),
+                                  INSTANT_FILL_MIN_QUALITY) is not None
+        if member_count(db, gid) >= group.max_members or not fits:
+            candidates.pop(gid)
+            open_groups[gid] = members
+            continue
+        _place(db, req, group)
+        db.flush()
+        refresh_group(db, group)
+        open_groups[gid] = members + [req]
+        return True
+    return False
 
 
 def fill_waiting(db: Session, course_id: int) -> int:
@@ -262,23 +285,6 @@ def courses_due(db: Session, now: datetime | None = None) -> list[int]:
                 oldest and now - aware(oldest) >= timedelta(hours=settings.match_max_wait_hours)):
             due.append(cid)
     return due
-
-
-# --------------------------------------------------------------------------------------------- manual waitlists
-
-def promote_waitlist(db: Session, group: StudyGroup) -> int:
-    """Fill open seats from the waitlist in strict FIFO order. Caller must hold the group row lock."""
-    promoted = 0
-    while member_count(db, group.id) < group.max_members:
-        entry = db.scalar(select(WaitlistEntry).where(WaitlistEntry.group_id == group.id)
-                          .order_by(WaitlistEntry.created_at, WaitlistEntry.id).limit(1))
-        if not entry:
-            break
-        db.add(Membership(group_id=group.id, user_id=entry.user_id))
-        db.delete(entry)
-        db.flush()
-        promoted += 1
-    return promoted
 
 
 # ------------------------------------------------------------------------------------------------------ metrics

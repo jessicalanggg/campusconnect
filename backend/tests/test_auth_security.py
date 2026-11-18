@@ -48,11 +48,11 @@ def test_cookie_session_requires_csrf_header_for_writes(client):
     assert any(c.startswith("cc_csrf=") and "HttpOnly" not in c for c in set_cookie)
 
     assert client.get("/api/auth/me").json()["email"] == "s@upenn.edu"  # reads work with the cookie alone
-    group = {"course_id": 1, "title": "Cookie group"}
-    assert client.post("/api/groups", json=group).status_code == 403  # no CSRF header
-    assert client.post("/api/groups", json=group, headers={"X-CSRF-Token": "wrong"}).status_code == 403
+    req = {"course_id": 1, "goal": "exam_prep", "pace": 2, "preferred_size": 3, "availability": [10, 11]}
+    assert client.post("/api/match/requests", json=req).status_code == 403  # no CSRF header
+    assert client.post("/api/match/requests", json=req, headers={"X-CSRF-Token": "wrong"}).status_code == 403
     csrf = client.cookies.get("cc_csrf")
-    assert client.post("/api/groups", json=group, headers={"X-CSRF-Token": csrf}).status_code == 201
+    assert client.post("/api/match/requests", json=req, headers={"X-CSRF-Token": csrf}).status_code == 201
 
     assert client.post("/api/auth/logout").status_code == 204
     assert client.get("/api/auth/me").status_code == 401

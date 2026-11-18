@@ -63,12 +63,12 @@ class StudyGroup(Base):
     __table_args__ = (CheckConstraint("max_members >= 2", name="ck_group_capacity"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     course_id: Mapped[int] = mapped_column(ForeignKey("courses.id", ondelete="RESTRICT"), index=True)
-    # Matched groups have no owner: every member is equal and anyone may leave.
+    # Groups are formed by the matcher and have no owner: every member is equal and anyone may leave.
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)
     title: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, default="")
     max_members: Mapped[int] = mapped_column(default=8)
-    kind: Mapped[str] = mapped_column(String(20), default="manual")  # manual | matched
+    kind: Mapped[str] = mapped_column(String(20), default="matched")  # all groups are matched since migration 004
     exam_id: Mapped[int | None] = mapped_column(ForeignKey("exams.id", ondelete="SET NULL"), nullable=True)
     match_run_id: Mapped[int | None] = mapped_column(ForeignKey("match_runs.id", ondelete="SET NULL"), nullable=True)
     match_quality: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -88,16 +88,6 @@ class Membership(Base):
     group_id: Mapped[int] = mapped_column(ForeignKey("study_groups.id", ondelete="CASCADE"), index=True)
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     group: Mapped[StudyGroup] = relationship(back_populates="memberships")
-
-
-class WaitlistEntry(Base):
-    """FIFO waitlist for full manual groups; promoted under the group's row lock when a seat opens."""
-    __tablename__ = "waitlist_entries"
-    __table_args__ = (UniqueConstraint("user_id", "group_id", name="uq_waitlist"),)
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    group_id: Mapped[int] = mapped_column(ForeignKey("study_groups.id", ondelete="CASCADE"), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class MatchRequest(Base):

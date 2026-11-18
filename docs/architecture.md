@@ -12,7 +12,7 @@ flowchart TD
   CI[GitHub Actions] --> Tests[Pytest / Vitest / Ruff / ESLint]
 ```
 
-The frontend is a Vite SPA; in Docker development, Vite proxies `/api` to the backend. FastAPI uses dependency-injected SQLAlchemy sessions. Passwords are Argon2-hashed and JWTs are time-limited. Group creation automatically enrolls the owner. PostgreSQL row locks protect capacity checks and FIFO waitlist promotion during concurrent joins; per-course advisory locks serialize matching between the API and the scheduler. See [matching.md](matching.md).
+The frontend is a Vite SPA; in Docker development, Vite proxies `/api` to the backend. FastAPI uses dependency-injected SQLAlchemy sessions. Passwords are Argon2-hashed and JWTs are time-limited. All groups are formed by the matcher; students never create or join groups directly, and groups are visible only to their members. Placing a student locks the request row and the group row and re-checks capacity; per-course advisory locks also serialize matching between the API and the scheduler. See [matching.md](matching.md).
 
 ## Tradeoffs
 - REST vs GraphQL: simpler API contracts and debugging for MVP.

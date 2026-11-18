@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Literal
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from sqlalchemy import select, func, or_
 from sqlalchemy.exc import IntegrityError
@@ -9,42 +8,38 @@ from app.db.session import get_db
 from app.core import email, ratelimit
 from app.core.ratelimit import by_ip
 from app.core.security import (admin_user, clear_session_cookies, current_user, hash_password, make_token,
-                               make_verify_token, optional_user, read_verify_token, set_session_cookies,
-                               verify_password)
+                               make_verify_token, read_verify_token, set_session_cookies, verify_password)
 from app.matching import service
-from app.models.entities import (User, Course, Exam, MatchRequest, MatchRun, MeetingCheckin, StudyGroup, Membership,
-                                 WaitlistEntry, utcnow)
-from app.schemas.api import (CheckinCreate, EmailIn, PublicConfig, RegisterOut, VerifyIn, ExamCreate, ExamOut, MatchRequestCreate, MatchRequestOut,
-                             MatchRequestUpdate, MatchRunOut, MeOut, UserCreate, Login, UserOut, Token, CourseOut,
-                             GroupCreate, GroupUpdate, GroupOut, Page)
+from app.models.entities import User, Course, Exam, MatchRequest, MatchRun, MeetingCheckin, StudyGroup, Membership, utcnow
+from app.schemas.api import (CheckinCreate, EmailIn, PublicConfig, RegisterOut, VerifyIn, ExamCreate, ExamOut,
+                             MatchRequestCreate, MatchRequestOut, MatchRequestUpdate, MatchRunOut, MeOut, UserCreate,
+                             Login, UserOut, Token, CourseOut, GroupOut)
 
 router = APIRouter(prefix="/api")
 
 
 def group_out(group: StudyGroup, db: Session, viewer: User | None = None) -> GroupOut:
-    count = service.member_count(db, group.id)
-    waitlist = db.scalar(select(func.count(WaitlistEntry.id)).where(WaitlistEntry.group_id == group.id)) or 0
     meetings = db.scalar(select(func.count(func.distinct(MeetingCheckin.met_on)))
                          .where(MeetingCheckin.group_id == group.id, MeetingCheckin.met.is_(True))) or 0
-    status, position = None, None
-    if viewer:
-        if db.scalar(select(Membership.id).where(Membership.group_id == group.id, Membership.user_id == viewer.id)):
-            status = "member"
-        else:
-            entry = db.scalar(select(WaitlistEntry).where(WaitlistEntry.group_id == group.id,
-                                                          WaitlistEntry.user_id == viewer.id))
-            if entry:
-                status = "waitlisted"
-                position = 1 + (db.scalar(select(func.count(WaitlistEntry.id)).where(
-                    WaitlistEntry.group_id == group.id,
-                    or_(WaitlistEntry.created_at < entry.created_at,
-                        (WaitlistEntry.created_at == entry.created_at) & (WaitlistEntry.id < entry.id)))) or 0)
-    return GroupOut(id=group.id, course_id=group.course_id, course_code=group.course.code,
-                    owner_id=group.owner_id, title=group.title, description=group.description,
-                    max_members=group.max_members, member_count=count, created_at=group.created_at,
-                    kind=group.kind, match_quality=group.match_quality, common_slots=group.common_slots or [],
-                    waitlist_count=waitlist, meetings_reported=meetings, viewer_status=status,
-                    viewer_waitlist_position=position)
+    is_member = viewer is not None and is_group_member(db, group.id, viewer.id)
+    return GroupOut(id=group.id, course_id=group.course_id, course_code=group.course.code, title=group.title,
+                    description=group.description, max_members=group.max_members,
+                    member_count=service.member_count(db, group.id), created_at=group.created_at,
+                    match_quality=group.match_quality, common_slots=group.common_slots or [],
+                    meetings_reported=meetings, viewer_status="member" if is_member else None)
+
+
+def is_group_member(db: Session, group_id: int, user_id: int) -> bool:
+    return db.scalar(select(Membership.id).where(Membership.group_id == group_id,
+                                                 Membership.user_id == user_id)) is not None
+
+
+def visible_group_or_404(db: Session, group_id: int, user: User) -> StudyGroup:
+    """Matched groups are private: only their members (and admins) can see them."""
+    group = db.get(StudyGroup, group_id)
+    if not group or not (is_group_member(db, group_id, user.id) or settings.is_admin(user.email)):
+        raise HTTPException(404, "Group not found")
+    return group
 
 
 def request_out(req: MatchRequest) -> MatchRequestOut:
@@ -52,13 +47,6 @@ def request_out(req: MatchRequest) -> MatchRequestOut:
                            goal=req.goal, pace=req.pace, preferred_size=req.preferred_size,
                            availability=req.availability, status=req.status, group_id=req.group_id,
                            created_at=req.created_at, matched_at=req.matched_at)
-
-
-def get_group_or_404(db: Session, group_id: int) -> StudyGroup:
-    group = db.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(404, "Group not found")
-    return group
 
 
 # ---------------------------------------------------------------------------------------------------- auth
@@ -249,156 +237,33 @@ def withdraw_match_request(request_id: int, user: User = Depends(current_user), 
 
 
 # ---------------------------------------------------------------------------------------------------- groups
-
-@router.get("/groups", response_model=Page)
-def groups(q: str = Query(default="", max_length=100), course_id: int | None = None,
-           kind: Literal["manual", "matched", "all"] = "manual",
-           page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),
-           viewer: User | None = Depends(optional_user), db: Session = Depends(get_db)):
-    stmt = select(StudyGroup).join(Course)
-    if kind != "all":
-        stmt = stmt.where(StudyGroup.kind == kind)
-    if course_id is not None:
-        stmt = stmt.where(StudyGroup.course_id == course_id)
-    if q.strip():
-        term = f"%{q.strip()}%"
-        stmt = stmt.where(or_(StudyGroup.title.ilike(term), StudyGroup.description.ilike(term), Course.code.ilike(term)))
-    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = db.scalars(stmt.order_by(StudyGroup.created_at.desc(), StudyGroup.id.desc())
-                      .offset((page - 1) * page_size).limit(page_size)).all()
-    return Page(items=[group_out(g, db, viewer) for g in rows], total=total, page=page, page_size=page_size)
-
+# All groups are formed by the matcher. Joining happens through match requests, never directly.
 
 @router.get("/groups/mine", response_model=list[GroupOut])
 def my_groups(user: User = Depends(current_user), db: Session = Depends(get_db)):
     member = select(Membership.group_id).where(Membership.user_id == user.id)
-    waiting = select(WaitlistEntry.group_id).where(WaitlistEntry.user_id == user.id)
-    rows = db.scalars(select(StudyGroup).where(or_(StudyGroup.id.in_(member), StudyGroup.id.in_(waiting)))
+    rows = db.scalars(select(StudyGroup).where(StudyGroup.id.in_(member))
                       .order_by(StudyGroup.created_at.desc(), StudyGroup.id.desc())).all()
     return [group_out(g, db, user) for g in rows]
 
 
 @router.get("/groups/{group_id}", response_model=GroupOut)
-def get_group(group_id: int, viewer: User | None = Depends(optional_user), db: Session = Depends(get_db)):
-    return group_out(get_group_or_404(db, group_id), db, viewer)
-
-
-@router.post("/groups", response_model=GroupOut, status_code=201, dependencies=[Depends(by_ip("create_group", 30, 3600))])
-def create_group(data: GroupCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    if not db.get(Course, data.course_id):
-        raise HTTPException(404, "Course not found")
-    group = StudyGroup(**data.model_dump(), owner_id=user.id, kind="manual")
-    db.add(group)
-    db.flush()
-    db.add(Membership(group_id=group.id, user_id=user.id))
-    db.commit()
-    db.refresh(group)
-    return group_out(group, db, user)
-
-
-@router.patch("/groups/{group_id}", response_model=GroupOut)
-def update_group(group_id: int, data: GroupUpdate, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    group = get_group_or_404(db, group_id)
-    if group.owner_id != user.id:
-        raise HTTPException(403, "Only the owner can edit this group")
-    updates = data.model_dump(exclude_unset=True)
-    if any(v is None for v in updates.values()):
-        raise HTTPException(422, "Fields cannot be null")
-    group = service.lock_group(db, group_id)
-    if updates.get("max_members", group.max_members) < service.member_count(db, group_id):
-        raise HTTPException(409, "Capacity cannot be below current membership")
-    for key, value in updates.items():
-        setattr(group, key, value)
-    db.flush()
-    service.promote_waitlist(db, group)  # a capacity increase opens seats for the waitlist
-    db.commit()
-    db.refresh(group)
-    return group_out(group, db, user)
-
-
-@router.delete("/groups/{group_id}", status_code=204)
-def delete_group(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    group = get_group_or_404(db, group_id)
-    if group.owner_id != user.id:
-        raise HTTPException(403, "Only the owner can delete this group")
-    db.delete(group)
-    db.commit()
-
-
-@router.post("/groups/{group_id}/join", response_model=GroupOut)
-def join_group(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    get_group_or_404(db, group_id)
-    # Lock group row on PostgreSQL to serialize concurrent capacity checks.
-    group = service.lock_group(db, group_id)
-    if group.kind == "matched":
-        raise HTTPException(409, "Matched groups are formed by the matcher; request a match for this course instead")
-    if db.scalar(select(Membership.id).where(Membership.group_id == group_id, Membership.user_id == user.id)):
-        raise HTTPException(409, "Already a member")
-    if service.member_count(db, group_id) >= group.max_members:
-        raise HTTPException(409, "Group is full — join the waitlist to be added when a seat opens")
-    if db.scalar(select(WaitlistEntry.id).where(WaitlistEntry.group_id == group_id)):
-        raise HTTPException(409, "Seats go to the waitlist first")
-    db.add(Membership(group_id=group_id, user_id=user.id))
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(409, "Already a member") from None
-    return group_out(group, db, user)
-
-
-@router.post("/groups/{group_id}/waitlist", response_model=GroupOut, status_code=201)
-def join_waitlist(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    get_group_or_404(db, group_id)
-    group = service.lock_group(db, group_id)
-    if group.kind == "matched":
-        raise HTTPException(409, "Matched groups don't have waitlists")
-    if db.scalar(select(Membership.id).where(Membership.group_id == group_id, Membership.user_id == user.id)):
-        raise HTTPException(409, "Already a member")
-    if service.member_count(db, group_id) < group.max_members and not db.scalar(
-            select(WaitlistEntry.id).where(WaitlistEntry.group_id == group_id)):
-        raise HTTPException(409, "Group has open seats — join directly")
-    db.add(WaitlistEntry(group_id=group_id, user_id=user.id))
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(409, "Already on the waitlist") from None
-    return group_out(group, db, user)
-
-
-@router.delete("/groups/{group_id}/waitlist/me", status_code=204)
-def leave_waitlist(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    get_group_or_404(db, group_id)
-    entry = db.scalar(select(WaitlistEntry).where(WaitlistEntry.group_id == group_id,
-                                                  WaitlistEntry.user_id == user.id))
-    if not entry:
-        raise HTTPException(404, "Not on the waitlist")
-    db.delete(entry)
-    db.commit()
+def get_group(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    return group_out(visible_group_or_404(db, group_id, user), db, user)
 
 
 @router.delete("/groups/{group_id}/members/me", status_code=204)
 def leave_group(group_id: int, rematch: bool = False, user: User = Depends(current_user),
                 db: Session = Depends(get_db)):
-    group = get_group_or_404(db, group_id)
-    if group.owner_id == user.id:
-        raise HTTPException(409, "Owner cannot leave; delete the group instead")
-    if not db.scalar(select(Membership.id).where(Membership.group_id == group_id, Membership.user_id == user.id)):
+    group = db.get(StudyGroup, group_id)
+    if not group or not is_group_member(db, group_id, user.id):
         raise HTTPException(404, "Not a member")
-    if group.kind == "matched":
-        service.leave_matched_group(db, group, user, rematch)
-        return
-    group = service.lock_group(db, group_id)
-    db.query(Membership).filter(Membership.group_id == group_id, Membership.user_id == user.id).delete()
-    db.flush()
-    service.promote_waitlist(db, group)
-    db.commit()
+    service.leave_matched_group(db, group, user, rematch)
 
 
 @router.get("/groups/{group_id}/members", response_model=list[UserOut])
-def group_members(group_id: int, db: Session = Depends(get_db)):
-    get_group_or_404(db, group_id)
+def group_members(group_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    visible_group_or_404(db, group_id, user)
     return db.scalars(select(User).join(Membership).where(Membership.group_id == group_id).order_by(User.name)).all()
 
 
@@ -406,8 +271,10 @@ def group_members(group_id: int, db: Session = Depends(get_db)):
              dependencies=[Depends(by_ip("checkin", 120, 3600))])
 def checkin(group_id: int, data: CheckinCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """'Did your group meet?' — members report per date; re-answering the same date updates the answer."""
-    group = get_group_or_404(db, group_id)
-    if not db.scalar(select(Membership.id).where(Membership.group_id == group_id, Membership.user_id == user.id)):
+    group = db.get(StudyGroup, group_id)
+    if not group:
+        raise HTTPException(404, "Group not found")
+    if not is_group_member(db, group_id, user.id):
         raise HTTPException(403, "Only members can report meetings")
     # One day of slack: a student ahead of UTC can already be on "tomorrow" (UTC) locally.
     if data.met_on > utcnow().date() + timedelta(days=1):

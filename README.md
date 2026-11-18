@@ -24,7 +24,7 @@ CampusConnect compares three matching algorithms on the same student pool. The 2
 | 250 | Local search | 98.5% | 0.623 | 2.24 |
 | 250 | **ILP (OR-Tools CP-SAT)** | **99.2%** | **0.674** (+20%) | **2.53** (+23%) |
 
-The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures have been verified as results from live student activity.
+The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures come from simulated student populations ([full benchmark](docs/benchmark.md)); results from live use will be added after each exam round.
 
 The [live app](https://campusconnect-o57p.onrender.com) tracks outcomes through `/api/metrics`:
 - the share of matched groups that met at least once and at least twice, from members' check-ins
@@ -79,15 +79,16 @@ Design details: [docs/matching.md](docs/matching.md).
 - Sessions in HttpOnly, SameSite cookies, with double-submit CSRF tokens on writes
 - Rate limits on sign-up, sign-in, verification emails and write endpoints. They're per account where it matters, so a whole lecture hall behind one campus IP isn't blocked.
 
-**Open groups**
-- Create, search, filter and join student-run groups
-- First-come, first-served waitlists for full groups, promoted under PostgreSQL row locks
-- Owner-only edit and delete; capacity enforced under concurrent joins
+**Concurrency**
+- Group capacity enforced under concurrent matching: placing a student locks their request row and the group row (`SELECT … FOR UPDATE`) and re-checks capacity, so a group is never overfilled and a student is never placed twice
+- Open seats go to the longest-waiting compatible student first
+- Per-course PostgreSQL advisory locks keep the hourly matcher and live requests from interleaving
+- Verified by concurrency tests that race simultaneous placements against a real PostgreSQL in CI
 
 **Engineering**
 - FastAPI, SQLAlchemy and Alembic migrations; React and TypeScript with Vite
 - Argon2 password hashing; signed, purpose-scoped tokens for sessions and email verification
-- Pytest and Vitest suites in GitHub Actions CI; Docker Compose for local development
+- Pytest and Vitest suites in GitHub Actions CI (with a PostgreSQL service for the concurrency tests); Docker Compose for local development
 - One production image (React app served by FastAPI) and a Render blueprint ([deploy guide](docs/deploy.md))
 
 ## Quick start (Docker)

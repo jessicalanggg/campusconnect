@@ -10,9 +10,7 @@ curl -X POST http://localhost:8000/api/auth/register -H 'Content-Type: applicati
 curl -X POST http://localhost:8000/api/auth/verify -H 'Content-Type: application/json' -d '{"token":"TOKEN_FROM_LINK"}'
 curl -X POST http://localhost:8000/api/auth/login -H 'Content-Type: application/json' -d '{"email":"student@upenn.edu","password":"password12345"}'
 # Browsers use the HttpOnly session cookie set by login. API clients can send the returned token instead:
-curl -X POST http://localhost:8000/api/groups -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_TOKEN' -d '{"course_id":1,"title":"Algorithms study circle","description":"Weekly review","max_members":8}'
-curl 'http://localhost:8000/api/groups?q=algorithms&page=1&page_size=10'
-curl -X POST http://localhost:8000/api/groups/1/join -H 'Authorization: Bearer YOUR_TOKEN'
+curl http://localhost:8000/api/groups/mine -H 'Authorization: Bearer YOUR_TOKEN'
 # Request a match. Availability = hour slots, index = day*14 + (hour-8), Mon=0; e.g. Mon 18:00-20:00 = 10, 11
 curl -X POST http://localhost:8000/api/match/requests -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_TOKEN' -d '{"course_id":1,"goal":"exam_prep","pace":2,"preferred_size":4,"availability":[10,11,38,39]}'
 curl http://localhost:8000/api/metrics
@@ -30,17 +28,10 @@ Admins are the accounts listed in `ADMIN_EMAILS`.
 | POST /api/auth/logout | Public | Clears the session cookies |
 | GET /api/auth/me | Required | Current account |
 | GET /api/courses?q= | Public | Case-insensitive course search |
-| GET /api/groups?q=&course_id=&kind=&page=&page_size= | Public | Paginated, page size 1–50; `kind` = manual (default), matched, all. Includes `viewer_status` when signed in |
-| GET /api/groups/mine | Required | Groups you're in or waitlisted for |
-| GET /api/groups/{id} | Public | Group details |
-| GET /api/groups/{id}/members | Public | Group roster |
-| POST /api/groups | Required | Creates group and joins owner |
-| PATCH /api/groups/{id} | Owner | Edit title/description/capacity |
-| DELETE /api/groups/{id} | Owner | Delete group |
-| POST /api/groups/{id}/join | Required | Manual groups only; 409 if full or already joined |
-| POST /api/groups/{id}/waitlist | Required | Full manual groups; FIFO promotion when a seat opens or capacity rises |
-| DELETE /api/groups/{id}/waitlist/me | Required | Leave the waitlist |
-| DELETE /api/groups/{id}/members/me?rematch= | Required | Owner cannot leave. For matched groups, `rematch=true` requeues you (never into the same group) |
+| GET /api/groups/mine | Required | Matched groups you're in |
+| GET /api/groups/{id} | Member or admin | Group details (404 for anyone else) |
+| GET /api/groups/{id}/members | Member or admin | Group roster |
+| DELETE /api/groups/{id}/members/me?rematch= | Member | Leave; `rematch=true` requeues you (never into the same group) |
 | POST /api/groups/{id}/checkins | Member | `{"met": true, "met_on": "2026-11-17"}`; one answer per member per date |
 | POST /api/match/requests | Required | Join the matching pool for a course; may be placed instantly into an open matched group |
 | GET /api/match/requests | Required | Your match requests (all cycles) |

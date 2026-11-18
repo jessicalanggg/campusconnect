@@ -62,10 +62,15 @@ describe('CampusConnect', () => {
     expect(screen.queryByText('Does it work?')).not.toBeInTheDocument()
   })
 
-  it('browses open groups', async () => {
+  it('has no open-group browsing; students see only their matched groups', async () => {
+    overrides['/auth/me'] = { body: { id: 2, email: 'sam@upenn.edu', name: 'Sam', is_admin: false } }
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Explore groups' }))
-    await waitFor(() => expect(screen.getByText('No groups found')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'My groups' })).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Explore groups' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/Open groups/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'My groups' }))
+    expect(await screen.findByText('No groups yet')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Create group/ })).not.toBeInTheDocument()
   })
 })
 
