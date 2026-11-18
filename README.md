@@ -9,13 +9,9 @@
 
 React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitHub Actions
 
-
-
 https://github.com/user-attachments/assets/75ae0733-9b08-4e90-a7a7-3a6c55c920cf
 
-
-
-<sub>Demo with simulated classmates on a local copy of the app (30 seconds).</sub>
+<sub>Demo with simulated classmates on a local copy of the app (39 seconds).</sub>
 
 ## Results
 
