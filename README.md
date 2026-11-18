@@ -34,7 +34,7 @@ In small classes the main win is placement: with 30 students the ILP places **75
 
 _The app is [live](https://campusconnect-o57p.onrender.com). Results will go here after the first exam round, with the date range and the method behind each number._
 
-The app tracks outcomes, not signups (`/api/metrics`):
+The app tracks outcomes, not signups (`/api/metrics`, shown to admins on the **Admin** tab):
 - the share of matched groups that met at least once and at least twice, from members' check-ins
 - retention across exams and courses
 - median and p90 time to match
@@ -80,7 +80,7 @@ Design details: [docs/matching.md](docs/matching.md).
 - Exam-aware rounds, instant placement, rematching on leave or schedule change
 - Greedy vs local search vs ILP on every round, recorded in `match_runs`
 - "Did your group meet?" check-ins and outcome metrics (`/api/metrics`)
-- Admin tab (admins only): add exam dates, run a matching round on demand, see past rounds
+- Admin tab (admins only): add exam dates, run a matching round on demand, see past rounds and outcome metrics
 
 **Accounts and security**
 - Configurable sign-up: open to any email by default, or restricted to school domains (e.g. `upenn.edu`, including subdomains) with an emailed confirmation link before first sign-in
