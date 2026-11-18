@@ -21,10 +21,10 @@ services:
         generateValue: true
       - key: RUN_MATCHER_IN_PROCESS
         value: "true"
-      # Sign-up rules: "*" = any email. For a school-only launch use e.g. "upenn.edu" and set
-      # REQUIRE_EMAIL_VERIFICATION to "true" (needs working email; see docs/deploy.md).
+      # Sign-up rules: Penn addresses only (including subdomains like seas.upenn.edu). Use "*" for any email.
+      # Set REQUIRE_EMAIL_VERIFICATION to "true" once email delivery works (see docs/deploy.md).
       - key: ALLOWED_EMAIL_DOMAINS
-        value: "*"
+        value: upenn.edu
       - key: REQUIRE_EMAIL_VERIFICATION
         value: "false"
       # Set these in the dashboard when prompted:
