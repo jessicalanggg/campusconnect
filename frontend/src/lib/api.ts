@@ -1,4 +1,6 @@
-export type User = { id: number; name: string; email: string; is_admin?: boolean }
+export type User = { id: number; name: string; email: string; is_admin?: boolean; contact?: string | null }
+/** A fellow group member: name, Penn email and the contact they chose to share with their groups. */
+export type Member = { id: number; name: string; email: string; contact: string | null }
 export type SignupConfig = { allowed_email_domains: string[]; require_email_verification: boolean }
 export type Course = { id: number; code: string; title: string; department: string }
 /** A study group formed by the matcher (students never create or join groups directly). */
@@ -6,7 +8,7 @@ export type Group = {
   id: number; course_id: number; course_code: string; title: string; description: string
   max_members: number; member_count: number; created_at: string
   match_quality: number | null; common_slots: number[]; meetings_reported: number
-  viewer_status: 'member' | null
+  viewer_status: 'member' | null; exam_name: string | null; exam_date: string | null
 }
 export type Goal = 'exam_prep' | 'homework' | 'concepts' | 'projects'
 export type MatchRequest = {
@@ -15,6 +17,13 @@ export type MatchRequest = {
   group_id: number | null; created_at: string; matched_at: string | null
 }
 export type MatchRequestInput = { course_id: number; goal: Goal; pace: number; preferred_size: number; availability: number[] }
+/** What a waiting student can expect (counts only, never who). */
+export type RequestStatus = {
+  waiting_in_course: number; compatible_classmates: number; min_common_hours: number; window_open: boolean
+  next_round_at: string | null; next_exam_name: string | null; next_exam_date: string | null
+}
+/** How many waiting classmates are free in each weekly hour; empty for very small pools. */
+export type Availability = { students: number; counts: number[] }
 export type Exam = { id: number; course_id: number; name: string; exam_date: string }
 export type MatchRun = {
   id: number; course_id: number; exam_id: number | null; trigger: string; algorithm: string; students: number

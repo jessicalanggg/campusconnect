@@ -81,7 +81,10 @@ Design details: [docs/matching.md](docs/matching.md).
 ## Features
 
 **Matching**
-- Weekly availability grid (drag to paint), study goal, pace, preferred group size
+- Weekly availability grid (drag to paint, quick presets), study goal, pace, preferred group size
+- An anonymous heatmap on the grid shows when waiting classmates are free (counts only, hidden for pools under 3)
+- While waiting: how many classmates are in the pool, how many share enough free time with you, and when the next round runs
+- Once matched: members' emails and optional contacts (Discord, phone), "Email the group", a suggested first meeting, and an `.ics` calendar file that repeats the shared hours until the exam
 - Exam-aware rounds, instant placement, rematching on leave or schedule change
 - Greedy vs local search vs ILP on every round, recorded in `match_runs`
 - "Did your group meet?" check-ins and outcome metrics (`/api/metrics`)

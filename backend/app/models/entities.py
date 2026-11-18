@@ -18,6 +18,8 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # Set when the student clicks the link sent to their Penn address; unverified accounts can't sign in.
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Optional way to reach this student (e.g. Discord or phone), shown only to members of their groups.
+    contact: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
 
 class Course(Base):

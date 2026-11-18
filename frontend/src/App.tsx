@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { BookOpen, Users, LogOut, ArrowRight, GraduationCap, X, UserRound, Sparkles, CalendarCheck, Clock, RefreshCw } from 'lucide-react'
-import { api, ApiError, describeSlots, type SignupConfig, type User, type Course, type Group } from './lib/api'
+import { BookOpen, Users, LogOut, ArrowRight, GraduationCap, X, UserRound, Sparkles, CalendarCheck, CalendarPlus, Clock, Mail, MessageCircle, RefreshCw } from 'lucide-react'
+import { api, ApiError, describeSlots, type SignupConfig, type User, type Course, type Group, type Member } from './lib/api'
+import { describeBlock, downloadFile, firstMeeting, groupCalendar, groupMailto } from './lib/meet'
 import MatchPanel from './components/MatchPanel'
 import AdminPanel from './components/AdminPanel'
 
@@ -20,7 +21,8 @@ export default function App() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [selected, setSelected] = useState<Group | null>(null)
-  const [members, setMembers] = useState<User[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [contact, setContact] = useState('')
   const [tab, setTab] = useState<Tab>('match')
   const [metOn, setMetOn] = useState(todayISO())
   const [version, setVersion] = useState(0)
@@ -92,7 +94,7 @@ export default function App() {
     setUser(null); setMine([]); setTab('match'); setSelected(null); setNotice('You have signed out.')
   }
   async function reloadSelected(id: number) {
-    const [g, m] = await Promise.all([api<Group>(`/groups/${id}`), api<User[]>(`/groups/${id}/members`)])
+    const [g, m] = await Promise.all([api<Group>(`/groups/${id}`), api<Member[]>(`/groups/${id}/members`)])
     setSelected(g); setMembers(m)
   }
   async function act(group: Group, path: string, method: 'POST' | 'DELETE', message: string, body?: unknown) {
@@ -107,14 +109,25 @@ export default function App() {
     } catch (e) { setError((e as Error).message) }
     finally { setBusy(false) }
   }
+  async function saveContact() {
+    setBusy(true); setError('')
+    try {
+      const me = await api<User>('/auth/me', { method: 'PATCH', body: JSON.stringify({ contact }) })
+      setUser(me); setContact(me.contact ?? '')
+      if (selected) setMembers(await api<Member[]>(`/groups/${selected.id}/members`))
+      setNotice(me.contact ? 'Your group can now see how to reach you.' : 'Contact removed.')
+    } catch (e) { setError((e as Error).message) }
+    finally { setBusy(false) }
+  }
   async function openGroup(group: Group | number) {
     const id = typeof group === 'number' ? group : group.id
     if (typeof group !== 'number') setSelected(group)
-    setMembers([]); setMetOn(todayISO())
+    setMembers([]); setMetOn(todayISO()); setContact(user?.contact ?? '')
     try { await reloadSelected(id) } catch (e) { setError((e as Error).message) }
   }
 
   const isMember = selected?.viewer_status === 'member'
+  const first = selected ? firstMeeting(selected.common_slots) : null
 
   return <div className="app">
     <header className="topbar"><div className="container nav"><a href="/" className="brand" onClick={e => { e.preventDefault(); setTab('match') }}><span className="brand-icon"><GraduationCap size={23}/></span> Campus<span>Connect</span></a>
@@ -137,7 +150,10 @@ export default function App() {
       <h2 className="detail-title">{selected.title}</h2>
       <div className="shared-time"><Clock size={16}/><div><strong>Everyone is free</strong><span>{describeSlots(selected.common_slots) || 'No shared time right now'}</span></div></div>
       <div className="detail-info"><Users size={18}/> {selected.member_count} of {selected.max_members} members{selected.match_quality !== null && ` · match quality ${Math.round(selected.match_quality * 100)}%`}</div>
-      <h4>Members</h4><div className="member-list">{members.map(m => <div key={m.id}><span className="member-avatar">{m.name[0]?.toUpperCase()}</span>{m.name}</div>)}</div>
+      {isMember && first && <div className="first-meeting"><CalendarCheck size={16}/><div><strong>Suggested first meeting</strong><span>{first.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}, {describeBlock(first.block).slice(4)}{selected.exam_name && selected.exam_date && ` · before ${selected.exam_name} on ${new Date(selected.exam_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}</span></div></div>}
+      {isMember && members.length > 0 && <div className="group-tools"><a className="btn primary" href={groupMailto(selected, members, user)}><Mail size={15}/> Email the group</a><button className="btn secondary" disabled={!selected.common_slots.length} onClick={() => downloadFile(`${selected.course_code.replace(/\s+/g, '-')}-study-group.ics`, groupCalendar(selected, members))}><CalendarPlus size={15}/> Add to calendar</button></div>}
+      <h4>Members</h4><div className="member-list">{members.map(m => <div key={m.id}><span className="member-avatar">{m.name[0]?.toUpperCase()}</span><div className="member-info"><strong>{m.name}{m.email === user?.email && <em> (you)</em>}</strong>{isMember && <a href={`mailto:${m.email}`}>{m.email}</a>}{isMember && m.contact && <span><MessageCircle size={12}/> {m.contact}</span>}</div></div>)}</div>
+      {isMember && <div className="contact-edit"><label htmlFor="contact">How should your group reach you? <small>Optional, e.g. Discord or phone. Only your group members see it.</small></label><div className="checkin-row"><input id="contact" maxLength={120} value={contact} placeholder="e.g. Discord: ava.c" onChange={e => setContact(e.target.value)}/><button className="btn secondary" disabled={busy || contact.trim() === (user?.contact ?? '')} onClick={saveContact}>Save</button></div></div>}
       {isMember && <div className="checkin"><div><CalendarCheck size={18}/><strong>Did your group meet?</strong><small>{selected.meetings_reported ? `${selected.meetings_reported} meeting${selected.meetings_reported === 1 ? '' : 's'} reported` : 'Help us learn which groups work.'}</small></div><div className="checkin-row"><input aria-label="Meeting date" type="date" max={todayISO()} value={metOn} onChange={e => setMetOn(e.target.value)}/><button className="btn secondary" disabled={busy} onClick={() => act(selected, 'checkins', 'POST', 'Thanks! Meeting recorded.', { met: true, met_on: metOn })}>Yes, we met</button><button className="btn ghost" disabled={busy} onClick={() => act(selected, 'checkins', 'POST', 'Thanks for letting us know.', { met: false, met_on: metOn })}>No</button></div></div>}
       {isMember && <div className="detail-actions"><button className="btn secondary" disabled={busy} onClick={() => act(selected, 'members/me?rematch=true', 'DELETE', 'You left the group. We’ll match you with a different one.')}><RefreshCw size={16}/> Find me a new group</button><button className="btn danger-btn" disabled={busy} onClick={() => act(selected, 'members/me', 'DELETE', 'You left the group.')}>Leave</button></div>}
     </div></div>}

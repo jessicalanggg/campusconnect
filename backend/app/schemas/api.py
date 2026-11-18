@@ -34,6 +34,22 @@ class PublicConfig(BaseModel):
 
 class MeOut(UserOut):
     is_admin: bool = False
+    contact: str | None = None
+
+
+class MemberOut(UserOut):
+    """A fellow group member: name, Penn email and the contact they chose to share."""
+    contact: str | None = None
+
+
+class ContactUpdate(BaseModel):
+    contact: str | None = Field(default=None, max_length=120)
+
+    @field_validator("contact")
+    @classmethod
+    def strip(cls, v: str | None) -> str | None:
+        v = (v or "").strip()
+        return v or None
 
 
 class Token(BaseModel):
@@ -71,6 +87,8 @@ class GroupOut(BaseModel):
     common_slots: list[int] = []
     meetings_reported: int = 0
     viewer_status: Literal["member"] | None = None
+    exam_name: str | None = None
+    exam_date: date | None = None
 
 
 Goal = Literal["exam_prep", "homework", "concepts", "projects"]
@@ -158,3 +176,20 @@ class MatchRunOut(BaseModel):
     ilp_overlap_hours: float
     runtime_ms: int
     created_at: datetime
+
+
+class RequestStatusOut(BaseModel):
+    """What a waiting student can expect, without revealing who else is waiting."""
+    waiting_in_course: int  # other students waiting in this course
+    compatible_classmates: int  # of those, how many share at least min_common_hours free hours with you
+    min_common_hours: int
+    window_open: bool  # inside the matching window before the course's next exam
+    next_round_at: datetime | None
+    next_exam_name: str | None = None
+    next_exam_date: date | None = None
+
+
+class AvailabilityOut(BaseModel):
+    """How many waiting classmates are free in each weekly hour. Counts only; hidden for very small pools."""
+    students: int
+    counts: list[int]

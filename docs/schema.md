@@ -10,7 +10,7 @@ erDiagram
  COURSES ||--o{ MATCH_REQUESTS : pools
  USERS ||--o{ MATCH_REQUESTS : submits
  MATCH_RUNS ||--o{ STUDY_GROUPS : forms
- USERS { int id PK string email UK string name string password_hash }
+ USERS { int id PK string email UK string name string password_hash datetime email_verified_at string contact }
  COURSES { int id PK string code UK string title string department }
  STUDY_GROUPS { int id PK int course_id FK string title float match_quality json common_slots int max_members int match_run_id FK }
  EXAMS { int id PK int course_id FK string name date exam_date }

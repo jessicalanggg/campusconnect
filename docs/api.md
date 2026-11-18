@@ -26,15 +26,18 @@ Admins are the accounts listed in `ADMIN_EMAILS`.
 | POST /api/auth/resend-verification | Public | Always 202 (doesn't reveal whether an account exists); 3 per 15 min per email |
 | POST /api/auth/login | Public | Sets HttpOnly `cc_session` and readable `cc_csrf` cookies, and returns the token; 403 until verified (when verification is on); 10 attempts per 5 min per email |
 | POST /api/auth/logout | Public | Clears the session cookies |
-| GET /api/auth/me | Required | Current account |
+| GET /api/auth/me | Required | Current account, including your optional `contact` |
+| PATCH /api/auth/me | Required | `{"contact": "Discord: ava.c"}` (max 120 chars; empty clears it). Shown only to members of your groups |
 | GET /api/courses?q= | Public | Case-insensitive course search |
+| GET /api/courses/{id}/availability | Required | How many classmates waiting in the course are free in each weekly hour (counts only, excluding you). `counts` is empty when fewer than 3 are waiting |
 | GET /api/groups/mine | Required | Matched groups you're in |
 | GET /api/groups/{id} | Member or admin | Group details (404 for anyone else) |
-| GET /api/groups/{id}/members | Member or admin | Group roster |
+| GET /api/groups/{id}/members | Member or admin | Group roster: name, email and each member's optional `contact` |
 | DELETE /api/groups/{id}/members/me?rematch= | Member | Leave; `rematch=true` requeues you (never into the same group) |
 | POST /api/groups/{id}/checkins | Member | `{"met": true, "met_on": "2026-11-17"}`; one answer per member per date |
 | POST /api/match/requests | Required | Join the matching pool for a course; may be placed instantly into an open matched group |
 | GET /api/match/requests | Required | Your match requests (all cycles) |
+| GET /api/match/requests/{id}/status | Owner | For a waiting request: classmates waiting, how many share 2+ free hours with you, whether the exam window is open, and an estimate of the next matching round. 409 once matched or withdrawn |
 | PATCH /api/match/requests/{id} | Owner | Update schedule/preferences; rematches you if your group can no longer meet |
 | DELETE /api/match/requests/{id} | Owner | Withdraw (leaves your matched group) |
 | GET /api/exams?course_id=&upcoming= | Public | Exam dates that drive automatic matching windows |
