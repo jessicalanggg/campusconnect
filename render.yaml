@@ -32,6 +32,9 @@ services:
         sync: false
       - key: ADMIN_EMAILS # the email you sign up with
         sync: false
+      # Email (docs/deploy.md): Resend works on the free plan; SMTP needs a paid instance.
+      - key: RESEND_API_KEY
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -40,5 +43,5 @@ services:
         sync: false
       - key: SMTP_PASSWORD
         sync: false
-      - key: EMAIL_FROM # e.g. CampusConnect <you@gmail.com>
+      - key: EMAIL_FROM # e.g. CampusConnect <hello@yourdomain.com>
         sync: false

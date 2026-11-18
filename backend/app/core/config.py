@@ -19,13 +19,17 @@ class Settings(BaseSettings):
     verify_token_hours: int = 48
     # Where verification links point (the frontend's public URL).
     app_base_url: str = "http://localhost:5173"
-    # SMTP for verification emails. When smtp_host is empty, emails are logged instead of sent (development).
+    # SMTP for outgoing email. With neither SMTP nor Resend configured, emails are logged instead (development).
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_starttls: bool = True
     email_from: str = "CampusConnect <no-reply@localhost>"
+    # Resend (https://resend.com) API key. When set, email goes over HTTPS instead of SMTP.
+    resend_api_key: str = ""
+    # Email verified students when the matcher places them in a group.
+    notify_on_match: bool = True
 
     # --- Session cookies (HttpOnly) and CSRF
     cookie_secure: bool = False  # set true in production (HTTPS)

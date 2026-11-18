@@ -14,6 +14,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.matching import notify
 from app.matching.engine import MatchConfig, Student, best_insertion_for, describe_slots, score_group, solve_all
 from app.models.entities import (Course, Exam, MatchRequest, MatchRun, MeetingCheckin, Membership, StudyGroup, User,
                                  utcnow)
@@ -84,6 +85,7 @@ def refresh_group(db: Session, group: StudyGroup) -> None:
 def _place(db: Session, req: MatchRequest, group: StudyGroup) -> None:
     db.add(Membership(group_id=group.id, user_id=req.user_id))
     req.status, req.group_id, req.matched_at = "matched", group.id, utcnow()
+    notify.record(db, req)
 
 
 def _create_group(db: Session, course: Course, reqs: list[MatchRequest], run: MatchRun | None,
@@ -193,7 +195,7 @@ def run_course_matching(db: Session, course_id: int, trigger: str) -> MatchRun |
             _create_group(db, course, reqs, run, exam_ids.pop() if len(exam_ids) == 1 else None)
         db.flush()
     fill_waiting(db, course_id)
-    db.commit()
+    notify.commit(db)
     return run
 
 
@@ -230,7 +232,7 @@ def leave_matched_group(db: Session, group: StudyGroup, user: User, rematch: boo
         db.query(Membership).filter(Membership.group_id == group.id, Membership.user_id == user.id).delete()
     _after_departure(db, group)
     fill_waiting(db, group.course_id)
-    db.commit()
+    notify.commit(db)
 
 
 def update_request(db: Session, req: MatchRequest, changes: dict) -> None:
@@ -249,7 +251,7 @@ def update_request(db: Session, req: MatchRequest, changes: dict) -> None:
             refresh_group(db, group)
     if req.status == "waiting":
         fill_waiting(db, req.course_id)
-    db.commit()
+    notify.commit(db)
 
 
 def withdraw_request(db: Session, req: MatchRequest) -> None:
@@ -260,7 +262,7 @@ def withdraw_request(db: Session, req: MatchRequest) -> None:
         _after_departure(db, group)
         fill_waiting(db, req.course_id)
     req.status = "withdrawn"
-    db.commit()
+    notify.commit(db)
 
 
 def submit_request(db: Session, req: MatchRequest) -> None:
@@ -270,7 +272,8 @@ def submit_request(db: Session, req: MatchRequest) -> None:
     db.add(req)
     db.flush()
     try_instant_fill(db, req)
-    db.commit()
+    notify.forget(db, req)  # they're placed while they wait for the response, so they see it on screen
+    notify.commit(db)
 
 
 def courses_due(db: Session, now: datetime | None = None) -> list[int]:

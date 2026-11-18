@@ -87,6 +87,7 @@ Design details: [docs/matching.md](docs/matching.md).
 - Once matched: members' emails and optional contacts (Discord, phone), "Email the group", a suggested first meeting, and an `.ics` calendar file that repeats the shared hours until the exam
 - Exam-aware rounds, instant placement, rematching on leave or schedule change
 - Greedy vs local search vs ILP on every round, recorded in `match_runs`
+- "You're matched" emails to verified students, sent after the placement commits (Resend over HTTPS, or SMTP)
 - "Did your group meet?" check-ins and outcome metrics (`/api/metrics`)
 - Admin tab (admins only): add exam dates, run a matching round on demand, see past rounds
 
