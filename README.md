@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/e0bf2a06-f6f9-4fca-8de1-086a0ade8abc
 
 
 
-<sub>Demo with simulated classmates on a local copy of the app (45 seconds).</sub>
+<sub>Demo with simulated classmates on a local copy of the app (54 seconds).</sub>
 
 ## Results
 
