@@ -32,6 +32,14 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class EmailIn(BaseModel):
+    email: EmailStr
+
+
+class VerifyIn(BaseModel):
+    token: str = Field(min_length=10, max_length=2000)
+
+
 class CourseOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

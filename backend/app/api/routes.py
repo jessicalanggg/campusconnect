@@ -1,15 +1,20 @@
+from datetime import timedelta
 from typing import Literal
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from sqlalchemy import select, func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import get_db
-from app.core.security import admin_user, current_user, hash_password, optional_user, verify_password, make_token
+from app.core import email, ratelimit
+from app.core.ratelimit import by_ip
+from app.core.security import (admin_user, clear_session_cookies, current_user, hash_password, make_token,
+                               make_verify_token, optional_user, read_verify_token, set_session_cookies,
+                               verify_password)
 from app.matching import service
 from app.models.entities import (User, Course, Exam, MatchRequest, MatchRun, MeetingCheckin, StudyGroup, Membership,
                                  WaitlistEntry, utcnow)
-from app.schemas.api import (CheckinCreate, ExamCreate, ExamOut, MatchRequestCreate, MatchRequestOut,
+from app.schemas.api import (CheckinCreate, EmailIn, VerifyIn, ExamCreate, ExamOut, MatchRequestCreate, MatchRequestOut,
                              MatchRequestUpdate, MatchRunOut, MeOut, UserCreate, Login, UserOut, Token, CourseOut,
                              GroupCreate, GroupUpdate, GroupOut, Page)
 
@@ -58,9 +63,17 @@ def get_group_or_404(db: Session, group_id: int) -> StudyGroup:
 
 # ---------------------------------------------------------------------------------------------------- auth
 
-@router.post("/auth/register", response_model=UserOut, status_code=201)
-def register(data: UserCreate, db: Session = Depends(get_db)):
-    user = User(email=str(data.email).lower(), name=data.name.strip(), password_hash=hash_password(data.password))
+PENN_EMAIL_MESSAGE = "Use your Penn email address (@upenn.edu, including school addresses like @seas.upenn.edu)"
+
+
+@router.post("/auth/register", response_model=UserOut, status_code=201,
+             dependencies=[Depends(by_ip("register", 30, 600))])
+def register(data: UserCreate, tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Create an unverified account and email a verification link to the Penn address."""
+    address = str(data.email).lower()
+    if not settings.email_allowed(address):
+        raise HTTPException(422, PENN_EMAIL_MESSAGE)
+    user = User(email=address, name=data.name.strip(), password_hash=hash_password(data.password))
     db.add(user)
     try:
         db.commit()
@@ -68,15 +81,51 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(409, "Email already registered") from None
     db.refresh(user)
+    tasks.add_task(email.send_verification, user.email, user.name, make_verify_token(user))
     return user
 
 
-@router.post("/auth/login", response_model=Token)
-def login(data: Login, db: Session = Depends(get_db)):
-    user = db.scalar(select(User).where(User.email == str(data.email).lower()))
+@router.post("/auth/verify", response_model=UserOut, dependencies=[Depends(by_ip("verify", 30, 600))])
+def verify_email(data: VerifyIn, db: Session = Depends(get_db)):
+    uid, address = read_verify_token(data.token)
+    user = db.get(User, uid)
+    if not user or user.email != address:
+        raise HTTPException(400, "This verification link is invalid or has expired")
+    if user.email_verified_at is None:
+        user.email_verified_at = utcnow()
+        db.commit()
+    return user
+
+
+@router.post("/auth/resend-verification", status_code=202, dependencies=[Depends(by_ip("resend", 30, 900))])
+def resend_verification(data: EmailIn, tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Always answers 202 so the endpoint can't be used to discover which emails have accounts."""
+    address = str(data.email).lower()
+    ratelimit.check(f"resend:email:{address}", 3, 900)
+    user = db.scalar(select(User).where(User.email == address))
+    if user and user.email_verified_at is None:
+        tasks.add_task(email.send_verification, user.email, user.name, make_verify_token(user))
+    return {"detail": "If that account exists and isn't verified yet, a new link is on its way."}
+
+
+@router.post("/auth/login", response_model=Token, dependencies=[Depends(by_ip("login", 60, 300))])
+def login(data: Login, response: Response, db: Session = Depends(get_db)):
+    """Sets the HttpOnly session cookie (browsers) and also returns the token (API clients)."""
+    address = str(data.email).lower()
+    ratelimit.check(f"login:email:{address}", 10, 300)
+    user = db.scalar(select(User).where(User.email == address))
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(401, "Invalid email or password")
-    return Token(access_token=make_token(user.id))
+    if user.email_verified_at is None:
+        raise HTTPException(403, "Verify your Penn email first. Check your inbox for the link.")
+    token = make_token(user.id)
+    set_session_cookies(response, token)
+    return Token(access_token=token)
+
+
+@router.post("/auth/logout", status_code=204)
+def logout(response: Response):
+    clear_session_cookies(response)
 
 
 @router.get("/auth/me", response_model=MeOut)
@@ -139,7 +188,8 @@ def metrics(db: Session = Depends(get_db)):
 
 # -------------------------------------------------------------------------------------------------- matching
 
-@router.post("/match/requests", response_model=MatchRequestOut, status_code=201)
+@router.post("/match/requests", response_model=MatchRequestOut, status_code=201,
+             dependencies=[Depends(by_ip("match_request", 60, 3600))])
 def create_match_request(data: MatchRequestCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if not db.get(Course, data.course_id):
         raise HTTPException(404, "Course not found")
@@ -220,7 +270,7 @@ def get_group(group_id: int, viewer: User | None = Depends(optional_user), db: S
     return group_out(get_group_or_404(db, group_id), db, viewer)
 
 
-@router.post("/groups", response_model=GroupOut, status_code=201)
+@router.post("/groups", response_model=GroupOut, status_code=201, dependencies=[Depends(by_ip("create_group", 30, 3600))])
 def create_group(data: GroupCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if not db.get(Course, data.course_id):
         raise HTTPException(404, "Course not found")
@@ -339,13 +389,15 @@ def group_members(group_id: int, db: Session = Depends(get_db)):
     return db.scalars(select(User).join(Membership).where(Membership.group_id == group_id).order_by(User.name)).all()
 
 
-@router.post("/groups/{group_id}/checkins", response_model=GroupOut)
+@router.post("/groups/{group_id}/checkins", response_model=GroupOut,
+             dependencies=[Depends(by_ip("checkin", 120, 3600))])
 def checkin(group_id: int, data: CheckinCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """'Did your group meet?' — members report per date; re-answering the same date updates the answer."""
     group = get_group_or_404(db, group_id)
     if not db.scalar(select(Membership.id).where(Membership.group_id == group_id, Membership.user_id == user.id)):
         raise HTTPException(403, "Only members can report meetings")
-    if data.met_on > utcnow().date():
+    # One day of slack: a student ahead of UTC can already be on "tomorrow" (UTC) locally.
+    if data.met_on > utcnow().date() + timedelta(days=1):
         raise HTTPException(422, "Meeting date cannot be in the future")
     if data.met_on < service.aware(group.created_at).date():
         raise HTTPException(422, "Meeting date is before the group was formed")

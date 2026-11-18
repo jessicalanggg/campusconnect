@@ -21,6 +21,11 @@ services:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       CORS_ORIGINS: http://localhost:5173
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      APP_BASE_URL: http://localhost:5173
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-CampusConnect <no-reply@localhost>}
     ports:
       - "8000:8000"
     depends_on:

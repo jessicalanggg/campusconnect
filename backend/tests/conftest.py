@@ -1,7 +1,7 @@
 import os
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["SECRET_KEY"] = "TEST_SECRET_NOT_FOR_PRODUCTION"
-os.environ["ADMIN_EMAILS"] = "admin@example.com"
+os.environ["ADMIN_EMAILS"] = "admin@upenn.edu"
 os.environ["ILP_TIME_LIMIT_SECONDS"] = "5"
 import pytest
 from sqlalchemy import create_engine
@@ -17,6 +17,9 @@ TestSession = sessionmaker(bind=engine, expire_on_commit=False)
 
 @pytest.fixture
 def client():
+    from app.core import email, ratelimit
+    ratelimit.reset()
+    email.OUTBOX.clear()
     Base.metadata.create_all(engine)
     with TestSession() as db:
         db.add(Course(code="CIS 1200", title="Programming", department="CS"))

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { BookOpen, Users, Search, Plus, LogOut, ArrowRight, GraduationCap, X, Trash2, Pencil, UserRound, ChevronLeft, ChevronRight, Sparkles, CalendarCheck, Clock, RefreshCw } from 'lucide-react'
-import { api, clearToken, describeSlots, getToken, saveToken, type User, type Course, type Group, type GroupInput, type GroupPage } from './lib/api'
+import { api, ApiError, describeSlots, type User, type Course, type Group, type GroupInput, type GroupPage } from './lib/api'
 import MatchPanel from './components/MatchPanel'
 import MetricsPanel from './components/MetricsPanel'
 import AdminPanel from './components/AdminPanel'
@@ -35,6 +35,9 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('match')
   const [metOn, setMetOn] = useState(todayISO())
   const [version, setVersion] = useState(0)
+  // Account flow messages shown inside the sign-in dialog
+  const [pendingEmail, setPendingEmail] = useState('')  // registered or unverified address awaiting verification
+  const [authInfo, setAuthInfo] = useState('')
 
   const notify = useCallback((msg: string) => { setNotice(msg); setError('') }, [])
   const fail = useCallback((msg: string) => setError(msg), [])
@@ -48,29 +51,55 @@ export default function App() {
       if (courseId) params.set('course_id', courseId)
       const data = await api<GroupPage>(`/groups?${params}`)
       setGroups(data.items); setTotal(data.total)
-      if (getToken()) setMine(await api<Group[]>('/groups/mine'))
+      if (user) setMine(await api<Group[]>('/groups/mine'))
     } catch (e) { setError((e as Error).message) }
     finally { setLoading(false) }
-  }, [page, query, courseId])
+  }, [page, query, courseId, user])
 
   useEffect(() => { api<Course[]>('/courses').then(setCourses).catch(e => setError(e.message)) }, [])
-  useEffect(() => { refresh() }, [refresh, version, user])
-  useEffect(() => { if (getToken()) api<User>('/auth/me').then(setUser).catch(() => clearToken()) }, [])
+  useEffect(() => { refresh() }, [refresh, version])
+  // The session is an HttpOnly cookie, so ask the server who we are.
+  useEffect(() => { api<User>('/auth/me').then(setUser).catch(() => setUser(null)) }, [])
+  // Verification links land on /?verify=<token>
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('verify')
+    if (!token) return
+    window.history.replaceState(null, '', window.location.pathname)
+    api<User>('/auth/verify', { method: 'POST', body: JSON.stringify({ token }) })
+      .then(u => { setAuth(a => ({ ...a, email: u.email })); setAuthMode('login'); setAuthInfo('Your Penn email is verified. Sign in to get matched.'); setAuthOpen(true) })
+      .catch(e => setError((e as Error).message))
+  }, [])
 
   async function submitAuth(e: FormEvent) {
-    e.preventDefault(); setError(''); setBusy(true)
+    e.preventDefault(); setError(''); setAuthInfo(''); setBusy(true)
     try {
-      if (authMode === 'register') await api('/auth/register', { method: 'POST', body: JSON.stringify(auth) })
-      const result = await api<{ access_token: string }>('/auth/login', { method: 'POST', body: JSON.stringify({ email: auth.email, password: auth.password }) })
-      saveToken(result.access_token)
-      setUser(await api<User>('/auth/me')); setAuthOpen(false); setAuth({ name: '', email: '', password: '' }); setNotice('Welcome to CampusConnect!')
-    } catch (e) { setError((e as Error).message) }
+      if (authMode === 'register') {
+        await api('/auth/register', { method: 'POST', body: JSON.stringify(auth) })
+        setPendingEmail(auth.email); setAuthMode('login'); setAuth(a => ({ ...a, password: '' }))
+        setAuthInfo(`We sent a verification link to ${auth.email}. Click it, then sign in here.`)
+        return
+      }
+      await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: auth.email, password: auth.password }) })
+      setUser(await api<User>('/auth/me')); setAuthOpen(false); setPendingEmail(''); setAuth({ name: '', email: '', password: '' }); setNotice('Welcome to CampusConnect!')
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 403 && authMode === 'login') { setPendingEmail(auth.email); setAuthInfo(e.message) }
+      else setError((e as Error).message)
+    }
     finally { setBusy(false) }
   }
-  function needAuth() { setAuthMode('register'); setAuthOpen(true) }
-  function logout() { clearToken(); setUser(null); setMine([]); setTab('match'); setSelected(null); setNotice('You have signed out.') }
+  async function resendVerification() {
+    setBusy(true); setError('')
+    try { await api('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email: pendingEmail }) }); setAuthInfo(`A new verification link is on its way to ${pendingEmail}.`) }
+    catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+  }
+  function openAuth(mode: AuthMode) { setAuthMode(mode); setAuthInfo(''); setError(''); setAuthOpen(true) }
+  function needAuth() { openAuth('register') }
+  async function logout() {
+    await api('/auth/logout', { method: 'POST' }).catch(() => undefined)
+    setUser(null); setMine([]); setTab('match'); setSelected(null); setNotice('You have signed out.')
+  }
   function openEditor(group?: Group) {
-    if (!user) { setAuthMode('login'); setAuthOpen(true); return }
+    if (!user) { openAuth('login'); return }
     setEditing(group || null)
     setDraft(group ? { course_id: group.course_id, title: group.title, description: group.description, max_members: group.max_members } : { ...emptyGroup, course_id: courses[0]?.id || 0 })
     setEditorOpen(true); setError('')
@@ -96,7 +125,7 @@ export default function App() {
     setSelected(g); setMembers(m)
   }
   async function act(group: Group, path: string, method: 'POST' | 'DELETE', message: string, body?: unknown) {
-    if (!user) { setAuthMode('login'); setAuthOpen(true); return }
+    if (!user) { openAuth('login'); return }
     setBusy(true); setError('')
     try {
       await api(`/groups/${group.id}/${path}`, { method, body: body ? JSON.stringify(body) : undefined })
@@ -119,11 +148,11 @@ export default function App() {
   return <div className="app">
     <header className="topbar"><div className="container nav"><a href="/" className="brand" onClick={e => { e.preventDefault(); setTab('match'); setPage(1); setQuery(''); setCourseId('') }}><span className="brand-icon"><GraduationCap size={23}/></span> Campus<span>Connect</span></a>
       <nav>{([['match', 'Get matched'], ['discover', 'Explore groups'], ...(user ? [['mine', 'My groups']] : []), ['impact', 'Impact']] as [Tab, string][]).map(([t, label]) => <button key={t} className={tab === t ? 'nav-link active' : 'nav-link'} onClick={() => setTab(t)}>{label}</button>)}</nav>
-      <div className="nav-actions">{user ? <><span className="hello"><UserRound size={16}/> {user.name}</span><button className="btn ghost" onClick={logout}><LogOut size={16}/> Sign out</button></> : <><button className="btn ghost" onClick={() => { setAuthMode('login'); setAuthOpen(true) }}>Log in</button><button className="btn primary" onClick={needAuth}>Get started <ArrowRight size={16}/></button></>}</div></div></header>
+      <div className="nav-actions">{user ? <><span className="hello"><UserRound size={16}/> {user.name}</span><button className="btn ghost" onClick={logout}><LogOut size={16}/> Sign out</button></> : <><button className="btn ghost" onClick={() => openAuth('login')}>Log in</button><button className="btn primary" onClick={needAuth}>Get started <ArrowRight size={16}/></button></>}</div></div></header>
     <main><section className="hero"><div className="container hero-inner"><div className="hero-content"><div className="eyebrow"><Sparkles size={14}/> Study groups for people who don’t know anyone yet</div><h1>Don’t know anyone<br/><em>in your class?</em></h1><p>GroupMe works when you already have friends in the course. CampusConnect matches you with classmates who are free when you are, want to study the same way, and are preparing for the same exam.</p><div className="hero-buttons"><button className="btn white" onClick={() => { setTab('match'); document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' }) }}>Get matched <ArrowRight size={17}/></button><button className="btn outline-white" onClick={() => { setTab('discover'); document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' }) }}>Browse open groups</button></div></div><div className="hero-art"><div className="floating-card card-one"><span className="avatar purple">S</span><div><strong>Matched in CIS 1210</strong><small>Everyone free: Tue 18:00–20:00</small></div><span className="status-dot"/></div><div className="orbit"><BookOpen size={66} strokeWidth={1.3}/><span className="orbit-bubble bubble-one"><Users size={22}/></span><span className="orbit-bubble bubble-two"><GraduationCap size={24}/></span></div><div className="floating-card card-two"><span className="avatars"><i>A</i><i>M</i><i>J</i></span><div><strong>Midterm prep · 4 people</strong><small>Same goal, same pace</small></div></div></div></div></section>
     <section className="stats container"><div><strong>{total}</strong><span>Open groups to join</span></div><div><strong>{courses.length}</strong><span>Courses with matching</span></div><div><strong>{mine.length}</strong><span>{user ? 'Your groups' : 'Sign in to get matched'}</span></div></section>
     <div id="content">
-    {(notice || error) && <div className="container">{notice && <div className="alert success" role="status">{notice}<button aria-label="Dismiss notice" onClick={() => setNotice('')}><X size={16}/></button></div>}{error && <div className="alert danger" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError('')}><X size={16}/></button></div>}</div>}
+    {(notice || error) && <div className="container">{notice && <div className="alert success" role="status">{notice}<button aria-label="Dismiss notice" onClick={() => setNotice('')}><X size={16}/></button></div>}{error && !authOpen && <div className="alert danger" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError('')}><X size={16}/></button></div>}</div>}
     {tab === 'match' && <MatchPanel user={user} courses={courses} onNeedAuth={needAuth} onOpenGroup={openGroup} onChanged={bump} notify={notify} fail={fail}/>}
     {tab === 'impact' && <><MetricsPanel refreshKey={version}/>{user?.is_admin && <AdminPanel courses={courses} notify={notify} fail={fail} onChanged={bump}/>}</>}
     {showGroups && <section id="groups" className="container discovery"><div className="section-heading"><div><div className="section-kicker">{tab === 'mine' ? 'YOUR GROUPS' : 'OPEN GROUPS'}</div><h2>{tab === 'mine' ? 'Your study groups' : 'Join an open study group'}</h2><p>{tab === 'mine' ? 'Matched groups and groups you joined or are waitlisted for.' : 'Groups created by students. Full groups have a first-come, first-served waitlist.'}</p></div><button className="btn primary create" onClick={() => openEditor()}><Plus size={18}/> Create group</button></div>
@@ -132,7 +161,7 @@ export default function App() {
     {tab === 'discover' && total > 9 && <div className="pagination"><button disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeft size={18}/> Previous</button><span>Page {page} of {Math.ceil(total / 9)}</span><button disabled={page * 9 >= total} onClick={() => setPage(p => p + 1)}>Next <ChevronRight size={18}/></button></div>}</section>}
     </div></main>
     <footer><div className="container footer-inner"><span className="brand"><span className="brand-icon"><GraduationCap size={18}/></span> Campus<span>Connect</span></span><span>Study groups that actually meet.</span><span>© {new Date().getFullYear()} CampusConnect</span></div></footer>
-    {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAuthOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Account"><button className="close" aria-label="Close" onClick={() => setAuthOpen(false)}><X/></button><div className="modal-mark"><GraduationCap/></div><h2>{authMode === 'login' ? 'Welcome back' : 'Join CampusConnect'}</h2><p>{authMode === 'login' ? 'Sign in to connect with your classmates.' : 'Create your account and start collaborating.'}</p>{error && <div className="alert danger" role="alert">{error}</div>}<form onSubmit={submitAuth}>{authMode === 'register' && <label>Full name<input required minLength={1} maxLength={120} value={auth.name} onChange={e => setAuth({ ...auth, name: e.target.value })} placeholder="Your name"/></label>}<label>Email address<input required type="email" value={auth.email} onChange={e => setAuth({ ...auth, email: e.target.value })} placeholder="you@university.edu"/></label><label>Password<input required type="password" minLength={8} value={auth.password} onChange={e => setAuth({ ...auth, password: e.target.value })} placeholder="At least 8 characters"/></label><button className="btn primary full" disabled={busy}>{busy ? 'Please wait...' : authMode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={16}/></button></form><div className="switch">{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError('') }}>{authMode === 'login' ? 'Sign up' : 'Sign in'}</button></div></div></div>}
+    {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAuthOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Account"><button className="close" aria-label="Close" onClick={() => setAuthOpen(false)}><X/></button><div className="modal-mark"><GraduationCap/></div><h2>{authMode === 'login' ? 'Welcome back' : 'Join CampusConnect'}</h2><p>{authMode === 'login' ? 'Sign in to connect with your classmates.' : 'Sign up with your Penn email to get matched with classmates.'}</p>{authInfo && <div className="alert info" role="status">{authInfo}{pendingEmail && authInfo.includes('Verify') && <button type="button" className="link-btn" disabled={busy} onClick={resendVerification}>Resend link</button>}</div>}{error && <div className="alert danger" role="alert">{error}</div>}<form onSubmit={submitAuth}>{authMode === 'register' && <label>Full name<input required minLength={1} maxLength={120} value={auth.name} onChange={e => setAuth({ ...auth, name: e.target.value })} placeholder="Your name"/></label>}<label>Penn email<input required type="email" value={auth.email} onChange={e => setAuth({ ...auth, email: e.target.value })} placeholder="you@upenn.edu" autoComplete="email"/>{authMode === 'register' && <small className="field-hint">@upenn.edu or a school address like @seas.upenn.edu. We’ll email you a link to confirm it.</small>}</label><label>Password<input required type="password" minLength={8} value={auth.password} onChange={e => setAuth({ ...auth, password: e.target.value })} placeholder="At least 8 characters"/></label><button className="btn primary full" disabled={busy}>{busy ? 'Please wait...' : authMode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={16}/></button></form><div className="switch">{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button onClick={() => openAuth(authMode === 'login' ? 'register' : 'login')}>{authMode === 'login' ? 'Sign up' : 'Sign in'}</button></div></div></div>}
     {editorOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setEditorOpen(false) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Study group editor"><button className="close" aria-label="Close" onClick={() => setEditorOpen(false)}><X/></button><div className="modal-mark"><Plus/></div><h2>{editing ? 'Edit study group' : 'Create a study group'}</h2><p>Bring your classmates together to learn and grow.</p><form onSubmit={saveGroup}><label>Course<select required disabled={!!editing} value={draft.course_id || ''} onChange={e => setDraft({ ...draft, course_id: Number(e.target.value) })}><option value="" disabled>Select a course</option>{courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}</select></label><label>Group name<input required minLength={3} maxLength={120} value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Algorithms midterm prep"/></label><label>Description<textarea maxLength={3000} rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} placeholder="What will your group focus on?"/></label><label>Maximum members<input type="number" required min={2} max={100} value={draft.max_members} onChange={e => setDraft({ ...draft, max_members: Number(e.target.value) })}/></label><button disabled={busy} className="btn primary full">{busy ? 'Saving...' : editing ? 'Save changes' : 'Create group'} <ArrowRight size={16}/></button></form></div></div>}
     {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><div className="modal" role="dialog" aria-modal="true" aria-label="Group details"><button className="close" aria-label="Close" onClick={() => setSelected(null)}><X/></button>
       <span className="course-pill color-0">{selected.course_code}</span>{selected.kind === 'matched' && <span className="match-tag inline"><Sparkles size={12}/> Matched group</span>}

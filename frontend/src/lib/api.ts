@@ -55,23 +55,31 @@ export function describeSlots(slots: number[]): string {
 }
 
 const BASE = import.meta.env.VITE_API_URL || ''
-const KEY = 'campusconnect_token'
-export const getToken = () => sessionStorage.getItem(KEY)
-export const saveToken = (token: string) => sessionStorage.setItem(KEY, token)
-export const clearToken = () => sessionStorage.removeItem(KEY)
+const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+/** The session lives in an HttpOnly cookie (unreadable here); writes echo the readable CSRF cookie in a header. */
+function csrfToken(): string {
+  const match = document.cookie.split('; ').find(c => c.startsWith('cc_csrf='))
+  return match ? decodeURIComponent(match.slice('cc_csrf='.length)) : ''
+}
+
 export class ApiError extends Error { constructor(public status: number, message: string) { super(message) } }
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = getToken()
+  const method = (init.method || 'GET').toUpperCase()
   let response: Response
   try {
-    response = await fetch(`${BASE}/api${path}`, { ...init, headers: { ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers } })
+    response = await fetch(`${BASE}/api${path}`, {
+      ...init,
+      credentials: 'include',
+      headers: { ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...(UNSAFE.has(method) ? { 'X-CSRF-Token': csrfToken() } : {}), ...init.headers },
+    })
   } catch { throw new ApiError(0, 'Unable to reach the server. Please try again.') }
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
     const detail = Array.isArray(data.detail) ? data.detail[0]?.msg : data.detail
-    const message = typeof detail === 'string' ? detail.replace(/^Value error, /, '') : response.status === 422 ? 'Please check your form fields.' : `Request failed (${response.status})`
+    const message = typeof detail === 'string' ? detail.replace(/^Value error, /, '') : response.status === 422 ? 'Please check your form fields.' : response.status === 429 ? 'Too many requests. Please wait a bit and try again.' : `Request failed (${response.status})`
     throw new ApiError(response.status, message)
   }
-  if (response.status === 204) return undefined as T
+  if (response.status === 204 || response.status === 202) return (response.status === 202 ? await response.json().catch(() => undefined) : undefined) as T
   return response.json() as Promise<T>
 }

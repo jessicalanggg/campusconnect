@@ -5,9 +5,11 @@ Open interactive API docs at http://localhost:8000/docs.
 ```bash
 curl http://localhost:8000/health
 curl 'http://localhost:8000/api/courses?q=CIS'
-curl -X POST http://localhost:8000/api/auth/register -H 'Content-Type: application/json' -d '{"email":"student@example.com","name":"Student","password":"password12345"}'
-curl -X POST http://localhost:8000/api/auth/login -H 'Content-Type: application/json' -d '{"email":"student@example.com","password":"password12345"}'
-# Substitute the JWT from the login response:
+curl -X POST http://localhost:8000/api/auth/register -H 'Content-Type: application/json' -d '{"email":"student@upenn.edu","name":"Student","password":"password12345"}'
+# Without SMTP configured, the verification link is printed in the backend log. Confirm it with the token from the link:
+curl -X POST http://localhost:8000/api/auth/verify -H 'Content-Type: application/json' -d '{"token":"TOKEN_FROM_LINK"}'
+curl -X POST http://localhost:8000/api/auth/login -H 'Content-Type: application/json' -d '{"email":"student@upenn.edu","password":"password12345"}'
+# Browsers use the HttpOnly session cookie set by login. API clients can send the returned token instead:
 curl -X POST http://localhost:8000/api/groups -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_TOKEN' -d '{"course_id":1,"title":"Algorithms study circle","description":"Weekly review","max_members":8}'
 curl 'http://localhost:8000/api/groups?q=algorithms&page=1&page_size=10'
 curl -X POST http://localhost:8000/api/groups/1/join -H 'Authorization: Bearer YOUR_TOKEN'
@@ -20,8 +22,11 @@ Admins are the accounts listed in `ADMIN_EMAILS`.
 
 | Route | Authentication | Notes |
 | --- | --- | --- |
-| POST /api/auth/register | Public | 201 or 409 duplicate email |
-| POST /api/auth/login | Public | JWT response; 401 invalid credentials |
+| POST /api/auth/register | Public | Penn emails only (422 otherwise); emails a verification link; 409 duplicate |
+| POST /api/auth/verify | Public | `{"token": ...}` from the emailed link; marks the email verified |
+| POST /api/auth/resend-verification | Public | Always 202 (doesn't reveal whether an account exists); 3 per 15 min per email |
+| POST /api/auth/login | Public | Sets HttpOnly `cc_session` and readable `cc_csrf` cookies, and returns the token; 403 until verified; 10 attempts per 5 min per email |
+| POST /api/auth/logout | Public | Clears the session cookies |
 | GET /api/auth/me | Required | Current account |
 | GET /api/courses?q= | Public | Case-insensitive course search |
 | GET /api/groups?q=&course_id=&kind=&page=&page_size= | Public | Paginated, page size 1–50; `kind` = manual (default), matched, all. Includes `viewer_status` when signed in |
@@ -45,5 +50,7 @@ Admins are the accounts listed in `ADMIN_EMAILS`.
 | POST /api/admin/exams | Admin | Add an exam date |
 | POST /api/admin/courses/{id}/match | Admin | Run a matching round now |
 | GET /api/admin/match-runs?course_id= | Admin | Per-round algorithm comparison |
+
+Cookie-authenticated `POST`/`PATCH`/`DELETE` requests must send `X-CSRF-Token` equal to the `cc_csrf` cookie. Requests using `Authorization: Bearer` don't need it. Rate-limited endpoints return 429 with `Retry-After`.
 
 FastAPI returns 422 for invalid inputs, 401 for missing/invalid credentials, 403 for insufficient ownership, 404 for missing resources, and 409 for state conflicts.

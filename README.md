@@ -23,10 +23,18 @@ Every matching round runs three algorithms on the same students and logs all thr
 
 In small classes the main win is placement: with 30 students the ILP places **75%** of them versus **45%** for greedy, because it can choose whole groups that greedy's one-at-a-time choices rule out.
 
-For real usage, the app tracks outcomes, not signups (`/api/metrics`, **Impact** tab):
+## Real-world results
+
+_Not launched yet. Results will go here after the first exam round, with the date range and the method behind each number._
+
+Only students who **verified a Penn email address** count. The app tracks outcomes, not signups (`/api/metrics`, **Impact** tab):
 - the share of matched groups that met at least once and at least twice, from members' check-ins
 - retention across exams and courses
 - median and p90 time to match
+
+How results are recorded:
+- `python -m app.results --out ../docs/results` saves a dated, aggregate-only snapshot after each exam round.
+- `python -m app.matching.real_benchmark` reruns the greedy/ILP comparison on real request pools, anonymized to free hours, goal, pace and group size. That's what backs any "on real data" claim. The table above is synthetic.
 
 ## How matching works
 
@@ -67,6 +75,11 @@ Design details: [docs/matching.md](docs/matching.md).
 - "Did your group meet?" check-ins and an **Impact** page with outcome metrics
 - Admin tools: add exam dates and run a matching round on demand
 
+**Accounts and security**
+- Penn-only signup: `@upenn.edu` addresses (including school subdomains), confirmed by an emailed link before first sign-in
+- Sessions in HttpOnly, SameSite cookies, with double-submit CSRF tokens on writes
+- Rate limits on sign-up, sign-in, verification emails and write endpoints. They're per account where it matters, so a whole lecture hall behind one campus IP isn't blocked.
+
 **Open groups**
 - Create, search, filter and join student-run groups
 - First-come, first-served waitlists for full groups, promoted under PostgreSQL row locks
@@ -74,8 +87,9 @@ Design details: [docs/matching.md](docs/matching.md).
 
 **Engineering**
 - FastAPI, SQLAlchemy and Alembic migrations; React and TypeScript with Vite
-- JWT auth and Argon2 password hashing
+- Argon2 password hashing; signed, purpose-scoped tokens for sessions and email verification
 - Pytest and Vitest suites in GitHub Actions CI; Docker Compose for local development
+- One production image (React app served by FastAPI) and a Render blueprint ([deploy guide](docs/deploy.md))
 
 ## Quick start (Docker)
 
@@ -83,12 +97,13 @@ Prerequisites: Docker Desktop with Compose.
 
 ```bash
 cp .env.example .env
-# Edit .env: set SECRET_KEY to a long random value and ADMIN_EMAILS to your account's email.
+# Edit .env: set SECRET_KEY to a long random value and ADMIN_EMAILS to your Penn email.
 docker compose up --build
 ```
 
 Open **http://localhost:5173** for the app, **http://localhost:8000/docs** for the interactive API docs, and **http://localhost:8000/health** for a health check.
-- Migrations and course seeding run automatically. A fresh install starts with courses only, so register an account to begin.
+- Migrations and course seeding run automatically. A fresh install starts with courses only, so register with a Penn email to begin.
+- Without SMTP settings, verification emails aren't sent. The link is printed in the backend log instead (`docker compose logs backend`).
 - Compose also starts a `matcher` service that runs exam-aware matching every hour.
 
 Stop with `docker compose down`. To delete local database data: `docker compose down -v` (destructive).
@@ -122,11 +137,14 @@ cd frontend && npm install && npm run test && npm run lint && npm run build
 python -m app.matching.benchmark --out ../docs/benchmark.md   # from backend/: regenerate the benchmark
 ```
 
+## Deploying
+
+See [docs/deploy.md](docs/deploy.md). In short: Render → New → Blueprint → this repo, then fill in your URL, admin email and SMTP settings. Before real students use it, upgrade the free database, which expires after 30 days.
+
 ## Limitations
 
-These would need hardening before a wider deployment:
-- **Authentication:** JWTs are kept in `sessionStorage`. HttpOnly cookies with CSRF protection would be safer. There's no email verification or password reset yet.
-- **Abuse prevention:** no rate limiting yet.
+- **Password reset** isn't built yet.
+- **Rate limits** are kept in memory, so they're per instance. That's fine for one instance; use Redis to scale out.
 - **Data entry:** students enter availability by hand. Calendar import is a natural next step.
 
-More docs: [matching design](docs/matching.md) · [benchmark](docs/benchmark.md) · [architecture](docs/architecture.md) · [ER schema](docs/schema.md) · [API](docs/api.md)
+More docs: [matching design](docs/matching.md) · [benchmark](docs/benchmark.md) · [deploy](docs/deploy.md) · [architecture](docs/architecture.md) · [ER schema](docs/schema.md) · [API](docs/api.md)

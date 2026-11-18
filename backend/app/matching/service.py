@@ -323,7 +323,8 @@ def compute_metrics(db: Session, now: datetime | None = None) -> dict:
         return round(100 * a / b, 1) if b else None
 
     return {
-        "users": db.scalar(select(func.count(User.id))) or 0,
+        # Only accounts that verified a Penn email address count as users.
+        "users": db.scalar(select(func.count(User.id)).where(User.email_verified_at.is_not(None))) or 0,
         "students_requested_match": requesters,
         "courses_with_requests": len({r.course_id for r in requests}),
         "matched_groups": len(matched_groups),

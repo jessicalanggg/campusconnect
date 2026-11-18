@@ -1,0 +1,40 @@
+# Render Blueprint: New > Blueprint in the Render dashboard, point it at this repo. See docs/deploy.md.
+databases:
+  - name: campusconnect-db
+    databaseName: campusconnect
+    user: campusconnect
+    plan: free # free Postgres expires after 30 days; upgrade before a real launch (see docs/deploy.md)
+
+services:
+  - type: web
+    name: campusconnect
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free # free instances sleep when idle, which pauses scheduled matching; use starter for a launch
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: campusconnect-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RUN_MATCHER_IN_PROCESS
+        value: "true"
+      - key: ALLOWED_EMAIL_DOMAINS
+        value: upenn.edu
+      # Set these in the dashboard when prompted:
+      - key: APP_BASE_URL # e.g. https://campusconnect.onrender.com (used in verification links)
+        sync: false
+      - key: ADMIN_EMAILS # your Penn email
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM # e.g. CampusConnect <you@gmail.com>
+        sync: false

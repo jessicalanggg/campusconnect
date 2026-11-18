@@ -1,14 +1,8 @@
+from tests.helpers import auth
 from datetime import date, datetime, timedelta, timezone
 
 from app.matching.engine import HOURS_PER_DAY
 from app.models.entities import Exam, MatchRequest, StudyGroup
-
-
-def auth(client, email, name="Student"):
-    assert client.post("/api/auth/register", json={"email": email, "name": name,
-                                                  "password": "strong-password-123"}).status_code == 201
-    token = client.post("/api/auth/login", json={"email": email, "password": "strong-password-123"}).json()
-    return {"Authorization": f"Bearer {token['access_token']}"}
 
 
 def slots(day, start, end):
@@ -26,8 +20,8 @@ def request(client, headers, availability=EVENING, goal="exam_prep", size=3):
 
 
 def test_batch_match_instant_fill_and_metrics(client):
-    admin = auth(client, "admin@example.com")
-    students = [auth(client, f"s{i}@example.com") for i in range(4)]
+    admin = auth(client, "admin@upenn.edu")
+    students = [auth(client, f"s{i}@upenn.edu") for i in range(4)]
     reqs = [request(client, h) for h in students[:3]]
     assert all(r["status"] == "waiting" for r in reqs)
     assert client.post("/api/admin/courses/1/match", headers=students[0]).status_code == 403
@@ -56,8 +50,8 @@ def test_batch_match_instant_fill_and_metrics(client):
 
 
 def test_leave_rematch_dissolve_and_schedule_change(client, session_factory):
-    admin = auth(client, "admin@example.com")
-    hs = [auth(client, f"s{i}@example.com") for i in range(3)]
+    admin = auth(client, "admin@upenn.edu")
+    hs = [auth(client, f"s{i}@upenn.edu") for i in range(3)]
     reqs = [request(client, h) for h in hs]
     client.post("/api/admin/courses/1/match", headers=admin)
     gid = client.get("/api/groups/mine", headers=hs[0]).json()[0]["id"]
@@ -88,7 +82,7 @@ def test_leave_rematch_dissolve_and_schedule_change(client, session_factory):
 
 
 def test_waitlist_fifo_promotion(client):
-    owner, a, b, c = (auth(client, f"{n}@example.com") for n in ("owner", "a", "b", "c"))
+    owner, a, b, c = (auth(client, f"{n}@upenn.edu") for n in ("owner", "a", "b", "c"))
     gid = client.post("/api/groups", headers=owner, json={"course_id": 1, "title": "Full group",
                                                           "max_members": 2}).json()["id"]
     assert client.post(f"/api/groups/{gid}/waitlist", headers=a).status_code == 409  # seats still open
@@ -113,8 +107,8 @@ def test_waitlist_fifo_promotion(client):
 
 
 def test_checkins_feed_meeting_metrics(client, session_factory):
-    admin = auth(client, "admin@example.com")
-    hs = [auth(client, f"s{i}@example.com") for i in range(3)]
+    admin = auth(client, "admin@upenn.edu")
+    hs = [auth(client, f"s{i}@upenn.edu") for i in range(3)]
     for h in hs:
         request(client, h)
     client.post("/api/admin/courses/1/match", headers=admin)
@@ -123,11 +117,11 @@ def test_checkins_feed_meeting_metrics(client, session_factory):
     with session_factory() as db:
         db.get(StudyGroup, gid).created_at = datetime.now(timezone.utc) - timedelta(days=10)
         db.commit()
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     assert client.post(f"/api/groups/{gid}/checkins", headers=admin,
                        json={"met": True, "met_on": str(today)}).status_code == 403
     assert client.post(f"/api/groups/{gid}/checkins", headers=hs[0],
-                       json={"met": True, "met_on": str(today + timedelta(days=1))}).status_code == 422
+                       json={"met": True, "met_on": str(today + timedelta(days=2))}).status_code == 422
     client.post(f"/api/groups/{gid}/checkins", headers=hs[0], json={"met": True, "met_on": str(today - timedelta(days=5))})
     m = client.get("/api/metrics").json()
     assert m["pct_groups_met_at_least_once"] == 100.0 and m["pct_groups_met_at_least_twice"] == 0.0
@@ -138,8 +132,8 @@ def test_checkins_feed_meeting_metrics(client, session_factory):
 
 def test_exam_window_tags_requests_and_schedules_matching(client, session_factory):
     from app.matching.service import courses_due
-    admin = auth(client, "admin@example.com")
-    s = auth(client, "s@example.com")
+    admin = auth(client, "admin@upenn.edu")
+    s = auth(client, "s@upenn.edu")
     assert client.post("/api/admin/exams", headers=s, json={"course_id": 1, "name": "Midterm 1",
                                                             "exam_date": str(date.today())}).status_code == 403
     exam = client.post("/api/admin/exams", headers=admin, json={
@@ -156,7 +150,7 @@ def test_exam_window_tags_requests_and_schedules_matching(client, session_factor
 
 
 def test_request_validation(client):
-    s = auth(client, "s@example.com")
+    s = auth(client, "s@upenn.edu")
     bad = {"course_id": 1, "goal": "exam_prep", "pace": 2, "preferred_size": 3}
     assert client.post("/api/match/requests", headers=s, json={**bad, "availability": [1]}).status_code == 422
     assert client.post("/api/match/requests", headers=s, json={**bad, "availability": [1, 999]}).status_code == 422
@@ -165,3 +159,24 @@ def test_request_validation(client):
     rid = request(client, s)["id"]
     assert client.delete(f"/api/match/requests/{rid}", headers=s).status_code == 204
     assert client.patch(f"/api/match/requests/{rid}", headers=s, json={"pace": 1}).status_code == 409
+
+
+def test_results_snapshot_and_real_data_benchmark_are_anonymous(client, session_factory, monkeypatch):
+    import app.db.session as db_session
+    from app import results
+    from app.matching import real_benchmark
+    monkeypatch.setattr(db_session, "SessionLocal", session_factory)
+    monkeypatch.setattr(results, "SessionLocal", session_factory)
+    hs = [auth(client, f"s{i}@upenn.edu", name=f"Student{i}") for i in range(4)]
+    for h in hs:
+        request(client, h)
+    snap = results.snapshot()
+    assert snap["metrics"]["students_requested_match"] == 4
+    assert snap["per_course"]["CIS 1200"]["match_requests"] == 4 and snap["period"]["first_request"]
+    pools = real_benchmark.export_pools()
+    text = str(snap) + str(pools)
+    assert not any(f"s{i}@upenn.edu" in text or f"Student{i}" in text for i in range(4))
+    assert pools[0]["pool"] == "CIS 1200 · no exam window" and len(pools[0]["students"]) == 4
+    assert set(pools[0]["students"][0]) == {"slots", "goal", "pace", "preferred_size"}
+    report = real_benchmark.run(pools)
+    assert "| CIS 1200 · no exam window | 4 | ilp |" in report and "Across 1 real pools (4 requests)" in report

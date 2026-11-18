@@ -1,19 +1,14 @@
-def auth(client, email="one@example.com"):
-    r = client.post("/api/auth/register", json={"email": email, "name": "Student", "password": "strong-password-123"})
-    assert r.status_code == 201
-    token = client.post("/api/auth/login", json={"email": email, "password": "strong-password-123"}).json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
+from tests.helpers import auth
 def test_auth_and_courses(client):
     headers = auth(client)
-    assert client.get("/api/auth/me", headers=headers).json()["email"] == "one@example.com"
+    assert client.get("/api/auth/me", headers=headers).json()["email"] == "one@upenn.edu"
     assert len(client.get("/api/courses?q=CIS").json()) == 1
     assert client.get("/api/auth/me").status_code == 401
-    assert client.post("/api/auth/register", json={"email": "one@example.com", "name": "Again", "password": "strong-password-123"}).status_code == 409
+    assert client.post("/api/auth/register", json={"email": "one@upenn.edu", "name": "Again", "password": "strong-password-123"}).status_code == 409
 
 def test_group_crud_membership_and_permissions(client):
     owner = auth(client)
-    other = auth(client, "two@example.com")
+    other = auth(client, "two@upenn.edu")
     data = {"course_id": 1, "title": "Midterm prep", "description": "Meet at library", "max_members": 2}
     assert client.post("/api/groups", json=data).status_code == 401
     created = client.post("/api/groups", json=data, headers=owner)
