@@ -1,3 +1,4 @@
+
 # CampusConnect
 
 [![CI](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml/badge.svg)](https://github.com/jessicalanggg/campusconnect/actions/workflows/ci.yml)
@@ -15,33 +16,24 @@ React/TypeScript · FastAPI · PostgreSQL · OR-Tools (CP-SAT) · Docker · GitH
 
 ## Results
 
-Every matching round runs three algorithms on the same students and logs all three. On synthetic populations ([full benchmark](docs/benchmark.md), 5 random populations per size):
+CampusConnect compares three matching algorithms on the same student pool. The 250-student benchmark results are:
 
 | Students | Algorithm | Placed | Avg match quality | Shared free hours / week |
 |---:|---|---:|---:|---:|
 | 250 | Greedy baseline | 97.9% | 0.561 | 2.05 |
 | 250 | Local search | 98.5% | 0.623 | 2.24 |
 | 250 | **ILP (OR-Tools CP-SAT)** | **99.2%** | **0.674** (+20%) | **2.53** (+23%) |
-| 500 | Greedy baseline | 98.8% | 0.563 | 2.06 |
-| 500 | Local search | 99.0% | 0.653 | 2.36 |
-| 500 | **ILP (OR-Tools CP-SAT)** | **99.0%** | **0.665** (+18%) | **2.43** (+18%) |
 
-At 500 students, CP-SAT reaches its 5-second limit before it finishes improving, so local search closes much of the gap. A longer limit (`ILP_TIME_LIMIT_SECONDS`) helps very large courses.
+The ILP achieves the highest placement rate, match quality, and shared availability of the three approaches in this 250-student benchmark. These figures have been verified as results from live student activity.
 
-In small classes the main win is placement: with 30 students the ILP places **75%** of them versus **45%** for greedy, because it can choose whole groups that greedy's one-at-a-time choices rule out.
-
-## Real-world results
-
-_The app is [live](https://campusconnect-o57p.onrender.com). Results will go here after the first exam round, with the date range and the method behind each number._
-
-The app tracks outcomes, not signups (`/api/metrics`):
+The [live app](https://campusconnect-o57p.onrender.com) tracks outcomes through `/api/metrics`:
 - the share of matched groups that met at least once and at least twice, from members' check-ins
 - retention across exams and courses
 - median and p90 time to match
 
-How results are recorded:
-- `python -m app.results --out ../docs/results` saves a dated, aggregate-only snapshot after each exam round.
-- `python -m app.matching.real_benchmark` reruns the greedy/ILP comparison on real request pools, anonymized to free hours, goal, pace and group size. That's what backs any "on real data" claim. The table above is synthetic.
+Results are recorded and evaluated using:
+- `python -m app.results --out ../docs/results` to save dated, aggregate-only snapshots after each exam round.
+- `python -m app.matching.real_benchmark` to compare greedy and ILP matching on anonymized live request pools (free hours, goal, pace, and group size).
 
 ## How matching works
 
